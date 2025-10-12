@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إضافة امتحان جديد</title>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #f6f7fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #800020; /* لون عنابي */
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 18px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #800020;
+      outline: none;
+      box-shadow: 0 0 3px rgba(128, 0, 32, 0.3);
+    }
+
+    button {
+      width: 100%;
+      background-color: #800020;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #a3002b;
+    }
+
+    .msg {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
+    .logo {
+      display: block;
+      margin: 0 auto 15px;
+      max-width: 100px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- مكان اللوجو -->
+    <img src="/exams/logo.svg" alt="شعار المدرسة" class="logo" />
+    <h1>إضافة امتحان جديد</h1>
+
+    <form id="examForm">
+      <label for="title">عنوان الامتحان</label>
+      <input type="text" id="title" required />
+
+      <label for="description">الوصف</label>
+      <textarea id="description" rows="3"></textarea>
+
+      <label for="start_time">وقت البداية</label>
+      <input type="datetime-local" id="start_time" required />
+
+      <label for="end_time">وقت الانتهاء</label>
+      <input type="datetime-local" id="end_time" required />
+
+      <button type="submit">إضافة الامتحان</button>
+    </form>
+
+    <div class="msg" id="message"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('examForm');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const data = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        start_time_qat: document.getElementById('start_time').value,
+        end_time_qat: document.getElementById('end_time').value,
+      };
+
+      const res = await fetch('/api/exams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        message.style.color = 'green';
+        message.textContent = '✅ تم إضافة الامتحان بنجاح';
+        form.reset();
+      } else {
+        message.style.color = 'red';
+        message.textContent = '❌ حدث خطأ أثناء الإضافة';
+      }
+    });
+  </script>
+</body>
+</html>

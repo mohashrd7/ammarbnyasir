@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>تسجيل المتقدم للامتحان — منصة الاختبارات</title>
+ <script src="https://cdn.tailwindcss.com"></script>
+ <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+ <style>
+  :root {
+   --qatar-burgundy: #800020;
+   --bg-light: #FFFFFF;
+   --text-dark: #1f2937;
+  }
+  body {
+   font-family: 'Cairo', ui-sans-serif, system-ui;
+   background-color: #F8F9FA;
+   color: var(--text-dark);
+   line-height: 1.6;
+  }
+  .q-card {
+   background-color: var(--bg-light);
+   border: none;
+   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+   padding: 3rem;
+   border-radius: 20px;
+  }
+  .btn-primary {
+   background-color: var(--qatar-burgundy);
+   color: white;
+   transition: background-color 0.3s, transform 0.1s;
+  }
+  .btn-primary:hover {
+   background-color: #A61E4D;
+   transform: translateY(-2px);
+   box-shadow: 0 4px 8px rgba(128, 0, 32, 0.3);
+  }
+  label {
+   display: block;
+   font-weight: 700;
+   margin-bottom: 0.5rem;
+   color: var(--qatar-burgundy);
+   font-size: 1.1rem;
+  }
+  input[type="text"], input[type="email"], select {
+   width: 100%;
+   padding: 0.75rem 0.5rem;
+   margin-bottom: 1.5rem;
+   border: none;
+   border-bottom: 3px solid var(--qatar-burgundy);
+   border-radius: 0;
+   font-size: 1.1rem;
+   background-color: transparent;
+   transition: border-bottom-color 0.3s;
+  }
+  input[type="text"]:focus, input[type="email"]:focus, select:focus {
+   outline: none;
+   border-bottom-color: #A61E4D;
+   background-color: #FFF5F7;
+  }
+  .token-box {
+   border: 2px solid var(--qatar-burgundy);
+   padding: 2rem;
+   border-radius: 16px;
+   background-color: #FFF5F7;
+   margin-top: 2rem;
+  }
+  .token-box p {
+   margin-bottom: 0.5rem;
+   font-weight: 700;
+   color: var(--text-dark);
+   font-size: 1rem;
+  }
+  .token-text {
+   font-family: monospace;
+   font-size: 1.2rem;
+   color: white;
+   background: var(--qatar-burgundy);
+   padding: 0.5rem 1rem;
+   border-radius: 8px;
+   display: inline-block;
+   letter-spacing: 2px;
+   font-weight: bold;
+  }
+  .exam-info {
+   display: flex;
+   gap: 1rem;
+   flex-wrap: wrap;
+   margin-top: 0.5rem;
+  }
+  .exam-info div {
+   flex: 1 1 45%;
+  }
+  .note {
+   margin-top: 1rem;
+   font-size: 0.9rem;
+   color: #555;
+   font-weight: 500;
+  }
+
+  /* Loading spinner */
+  .loader {
+   position: relative;
+   width: 48px;
+   height: 48px;
+   margin: 1.5rem auto;
+  }
+  .loader:before {
+   content: '';
+   box-sizing: border-box;
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 48px;
+   height: 48px;
+   border: 4px dashed var(--qatar-burgundy);
+   border-radius: 50%;
+   animation: spinDashed 1s linear infinite;
+  }
+  @keyframes spinDashed {
+   0% { transform: rotate(0deg);}
+   100% { transform: rotate(360deg);}
+  }
+ </style>
+</head>
+
+<body>
+ <div class="max-w-xl mx-auto p-6">
+  <header class="mb-8 text-center">
+   <img src="/exams/logo.svg" alt="logo" class="mx-auto h-20 object-contain rounded" /> 
+   <h1 class="text-3xl font-extrabold text-qatar-burgundy mt-5">تسجيل المتقدم للامتحان</h1>
+  </header>
+
+  <main class="q-card">
+   <form id="applicantForm">
+    <label for="name">الاسم الكامل</label>
+    <input type="text" id="name" placeholder="أدخل اسمك الكامل" required />
+
+    <label for="email">البريد الإلكتروني</label>
+    <input type="email" id="email" placeholder="أدخل بريدك الإلكتروني" required />
+
+    <label for="specialization">التخصص</label>
+    <select id="specialization" required>
+     <option value="" disabled selected>اختر تخصصك</option>
+     <option value="علوم">علوم</option>
+     <option value="الحوسبة وتكنولوجيا المعلومات">الحوسبة وتكنولوجيا المعلومات</option>
+     <option value="رياضيات">رياضيات</option>
+     <option value="معلم صف">معلم صف</option>
+     <option value="اللغة العربية">اللغة العربية</option>
+     <option value="اللغة الإنجليزية">اللغة الإنجليزية</option>
+     <option value="التربية الإسلامية">التربية الإسلامية</option>
+     <option value="الدراسات الإجتماعية">الدراسات الإجتماعية</option>
+    </select>
+
+    <button type="submit" class="btn-primary w-full p-4 rounded-xl font-bold mt-4 text-lg">
+     توليد رمز الدخول
+    </button>
+   </form>
+
+   <div id="loadingSpinner" class="loader hidden"></div>
+   
+   <div id="errorAlert" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4" role="alert">
+    <span class="block sm:inline" id="errorMessage"></span>
+   </div>
+
+
+   <div id="resultBox" class="token-box hidden">
+    <p>رمز الدخول الخاص بك:</p>
+    <span class="token-text" id="tokenText"></span>
+
+    <div class="exam-info">
+     <div>
+      <p>التاريخ:</p>
+      <span id="examDate" class="text-gray-700 font-bold text-lg"></span>
+     </div>
+     <div>
+      <p>الساعة:</p>
+      <span id="examTime" class="text-gray-700 font-bold text-lg"></span>
+     </div>
+    </div>
+
+    <p class="note">جميع الأوقات المعروضة هي بتوقيت قطر الرسمي (Asia/Qatar).</p>
+
+    <p class="mt-4">رابط الامتحان:</p>
+    <a href="#" id="examLink" class="text-qatar-burgundy font-semibold underline text-lg break-all" target="_blank"></a>
+
+    <p class="mt-4 text-base text-gray-500 font-normal">
+     يرجى حفظ رمز الدخول وتفاصيل الامتحان لاستخدامها في الموعد المحدد.
+    </p>
+   </div>
+  </main>
+ </div>
+
+ <script>
+  /*
+   =================================================================================
+   ⚠️ ملاحظة هامة لتطبيق قيد الـ 15 دقيقة ⚠️
+   
+   * لضمان الأمان وعدم التلاعب، يجب تطبيق منطق منع التسجيل قبل 15 دقيقة من الامتحان 
+    **حصريًا** على الخادم (في ملف server.js ضمن مسار /api/applicant/register_token).
+   
+   * يجب على الخادم التحقق من: 
+    `الوقت الحالي > (وقت بداية الامتحان - 15 دقيقة)`
+   * إذا كان الشرط صحيحاً (أي فات موعد التسجيل المسموح)، يجب على الخادم أن يرفض الطلب ويعيد استجابة خطأ (مثل status 400 أو 500) مع رسالة واضحة، مثلاً:
+    `{ success: false, error: "تم إغلاق باب التسجيل. لا يمكن التسجيل قبل 15 دقيقة من موعد الامتحان." }`
+  
+   * الكود الأمامي (هذا الملف) جاهز لاستقبال وعرض هذه الرسالة باستخدام دالة displayError.
+   =================================================================================
+  */
+
+  async function registerApplicant(data) {
+   try {
+    const res = await fetch("/api/applicant/register_token", {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify(data)
+    });
+    // ✅ سيتم تمرير رسالة الخطأ من السيرفر هنا إذا تم رفض التسجيل بسبب قيد الوقت.
+    const result = await res.json();
+    if (!res.ok && !result.success) { 
+     // إذا كان هناك خطأ في الاتصال أو السيرفر لم يرجع success: true
+     throw new Error(result.error || `خطأ في السيرفر: ${res.status}`);
+    }
+    return result;
+   } catch (err) {
+    console.error("Registration failed:", err);
+    return { success: false, error: err.message || "فشل الاتصال بالسيرفر أو معالجة البيانات." };
+   }
+  }
+
+  const form = document.getElementById("applicantForm");
+  const resultBox = document.getElementById("resultBox");
+  const tokenText = document.getElementById("tokenText");
+  const examDateEl = document.getElementById("examDate");
+  const examTimeEl = document.getElementById("examTime");
+  const examLinkEl = document.getElementById("examLink");
+  const loadingSpinner = document.getElementById("loadingSpinner");
+  const errorAlert = document.getElementById("errorAlert");
+  const errorMessageEl = document.getElementById("errorMessage");
+
+  function displayError(message) {
+   errorMessageEl.textContent = message;
+   errorAlert.classList.remove("hidden");
+   errorAlert.scrollIntoView({ behavior: "smooth" });
+  }
+  
+  function hideError() {
+    errorAlert.classList.add("hidden");
+  }
+
+  form.addEventListener("submit", async (e) => {
+   e.preventDefault();
+   const name = document.getElementById("name").value.trim();
+   const email = document.getElementById("email").value.trim();
+   const specialization = document.getElementById("specialization").value;
+
+   if (!name || !email || !specialization) {
+    displayError("الرجاء ملء جميع الحقول المطلوبة.");
+    return;
+   }
+
+   // إظهار اللودينج وإخفاء النتائج/الخطأ
+   resultBox.classList.add("hidden");
+   hideError();
+   loadingSpinner.classList.remove("hidden");
+   
+   const data = { name, email, specialization };
+   const response = await registerApplicant(data);
+   
+   // إبقاء اللودينج لمدة ثانيتين (لتحسين تجربة المستخدم)
+   setTimeout(() => {
+    loadingSpinner.classList.add("hidden");
+
+    if (!response.success) {
+     displayError(response.error || "حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.");
+     return;
+    }
+
+    const token = response.token;
+    const exam = response.exam; // 💡 استخدام بيانات الامتحان المُرسلة من السيرفر
+
+    if (exam && exam.displayDate) {
+     // 💡 استخدام الحقول الجاهزة التي تم تنسيقها في السيرفر
+     examDateEl.textContent = exam.displayDate;
+     examTimeEl.textContent = exam.displayTime;
+    } else {
+     // حالة عدم وجود بيانات امتحان (قد تكون بسبب خطأ في إعدادات السيرفر)
+     examDateEl.textContent = "لم يتم تحديد التاريخ (تواصل مع الدعم)";
+     examTimeEl.textContent = "لم يتم تحديد الساعة (تواصل مع الدعم)";
+    }
+    
+    tokenText.textContent = token;
+    
+    // رابط الامتحان ثابت الآن
+    const link = `https://ammarbnyasir.com/applicant-exam`; 
+    examLinkEl.href = link;
+    examLinkEl.textContent = link;
+
+    resultBox.classList.remove("hidden");
+    resultBox.scrollIntoView({ behavior: "smooth" });
+   }, 2000);
+  });
+ </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إضافة قسم جديد</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 font-sans text-gray-800">
+  <div class="max-w-3xl mx-auto mt-16 bg-white shadow-xl rounded-2xl p-8 border-t-8 border-[#800020]">
+    <h1 class="text-3xl font-bold text-[#800020] mb-8 text-center">إضافة قسم جديد للامتحان</h1>
+
+    <form id="sectionForm" class="space-y-6">
+      <!-- اختيار الامتحان -->
+      <div>
+        <label for="exam_id" class="block mb-2 font-semibold text-gray-700">اختر الامتحان:</label>
+        <select id="exam_id" name="exam_id" required
+          class="w-full border border-gray-300 bg-gray-50 text-gray-800 rounded-lg p-2 focus:ring-[#800020] focus:border-[#800020]">
+          <option value="">— اختر الامتحان —</option>
+        </select>
+      </div>
+
+      <!-- اسم القسم -->
+      <div>
+        <label for="title" class="block mb-2 font-semibold text-gray-700">اسم القسم:</label>
+        <input type="text" id="title" name="title" required
+          class="w-full border border-gray-300 bg-gray-50 rounded-lg p-2 focus:ring-[#800020] focus:border-[#800020]" />
+      </div>
+
+      <!-- ترتيب القسم -->
+      <div>
+        <label for="order" class="block mb-2 font-semibold text-gray-700">ترتيب القسم:</label>
+        <input type="number" id="order" name="order" min="1" required
+          class="w-full border border-gray-300 bg-gray-50 rounded-lg p-2 focus:ring-[#800020] focus:border-[#800020]" />
+      </div>
+
+      <!-- زر الإرسال -->
+    <button type="submit"
+        class="w-full bg-[#8A1538] text-white py-3 rounded-lg hover:bg-[#A61E4D] transition font-semibold">
+          إضافة القسم
+    </button>
+
+    </form>
+
+    <p id="message" class="mt-6 text-center font-medium"></p>
+  </div>
+
+  <script>
+    // تحميل قائمة الامتحانات
+    async function loadExams() {
+      const res = await fetch('/api/exams');
+      const exams = await res.json();
+      const select = document.getElementById('exam_id');
+      exams.forEach(exam => {
+        const opt = document.createElement('option');
+        opt.value = exam.id;
+        opt.textContent = exam.title;
+        select.appendChild(opt);
+      });
+    }
+
+    // عند إرسال النموذج
+    document.getElementById('sectionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        exam_id: document.getElementById('exam_id').value,
+        title: document.getElementById('title').value,
+        order: document.getElementById('order').value
+      };
+
+      const res = await fetch('/api/sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      const msg = document.getElementById('message');
+
+      if (res.ok) {
+        msg.textContent = '✅ تم إضافة القسم بنجاح';
+        msg.className = 'text-green-600 text-center mt-4';
+        document.getElementById('sectionForm').reset();
+      } else {
+        msg.textContent = '❌ حدث خطأ: ' + result.error;
+        msg.className = 'text-red-600 text-center mt-4';
+      }
+    });
+
+    loadExams();
+  </script>
+</body>
+</html>

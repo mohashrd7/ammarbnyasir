@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إضافة سؤال جديد</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    /* اللون الأساسي (مارون) */
+    .bg-\[\#800020\] { background-color: #800020; }
+    .hover\:bg-\[\#9a1c35\]:hover { background-color: #9a1c35; }
+    .border-\[\#800020\] { border-color: #800020; }
+    .focus\:ring-\[\#800020\]:focus { --tw-ring-color: #800020; }
+  </style>
+</head>
+
+<body class="bg-gray-100 font-sans text-gray-800 flex justify-center items-center min-h-screen p-4">
+  <div class="w-full max-w-xl mx-auto bg-white shadow-2xl rounded-xl p-8 border-t-8 border-[#800020]">
+    <h1 class="text-3xl font-extrabold text-[#800020] mb-8 text-center pb-4 border-b">
+      إضافة سؤال جديد
+    </h1>
+
+    <form id="questionForm" class="space-y-6">
+      <!-- اختيار الامتحان -->
+      <div>
+        <label for="exam_id" class="block mb-2 font-semibold text-gray-700">اختر الامتحان:</label>
+        <select id="exam_id" name="exam_id" required
+          class="w-full border border-gray-300 bg-gray-50 text-gray-800 rounded-lg p-2 focus:ring-2 focus:ring-[#800020] focus:border-transparent">
+          <option value="">— جاري تحميل الامتحانات —</option>
+        </select>
+      </div>
+
+      <!-- اختيار القسم -->
+      <div>
+        <label for="section_id" class="block mb-2 font-semibold text-gray-700">اختر القسم:</label>
+        <select id="section_id" name="section_id" required disabled
+          class="w-full border border-gray-300 bg-gray-50 text-gray-800 rounded-lg p-2 focus:ring-2 focus:ring-[#800020] focus:border-transparent">
+          <option value="">— اختر امتحان أولاً —</option>
+        </select>
+      </div>
+
+      <!-- نص السؤال -->
+      <div>
+        <label for="question_text" class="block mb-2 font-semibold text-gray-700">نص السؤال:</label>
+        <textarea id="question_text" name="question_text" rows="4" required
+          class="w-full border border-gray-300 bg-gray-50 rounded-lg p-2 focus:ring-2 focus:ring-[#800020] focus:border-transparent"></textarea>
+      </div>
+
+      <!-- نوع السؤال -->
+      <div>
+        <label for="question_type" class="block mb-2 font-semibold text-gray-700">نوع السؤال:</label>
+        <select id="question_type" name="question_type" required
+          class="w-full border border-gray-300 bg-gray-50 text-gray-800 rounded-lg p-2 focus:ring-2 focus:ring-[#800020] focus:border-transparent">
+          <option value="text">سؤال كتابي (إجابة قصيرة)</option>
+          <option value="multiple_choice">اختيار من متعدد</option>
+        </select>
+      </div>
+
+      <!-- خيارات الإجابة (تظهر فقط للاختيار من متعدد) -->
+      <div id="optionsContainer" class="hidden border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <div class="flex items-center justify-between mb-3">
+          <label class="font-semibold text-gray-700">خيارات الإجابة:</label>
+          <button type="button" id="addOption"
+            class="bg-[#800020] hover:bg-[#9a1c35] text-white text-sm px-3 py-1 rounded-lg shadow transition">
+            + إضافة خيار
+          </button>
+        </div>
+
+        <div id="optionsList" class="space-y-2">
+          <!-- يتم توليد الخيارات هنا -->
+        </div>
+      </div>
+
+      <!-- زر الإرسال -->
+      <button type="submit" id="submitBtn"
+        class="w-full bg-[#800020] text-white py-3 mt-6 rounded-lg hover:bg-[#9a1c35] transition font-bold text-lg shadow-md">
+        إضافة السؤال
+      </button>
+    </form>
+
+    <p id="message" class="mt-6 text-center font-medium"></p>
+  </div>
+
+  <script>
+    const examSelect = document.getElementById('exam_id');
+    const sectionSelect = document.getElementById('section_id');
+    const form = document.getElementById('questionForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const messageElement = document.getElementById('message');
+    const questionType = document.getElementById('question_type');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const optionsList = document.getElementById('optionsList');
+    const addOptionBtn = document.getElementById('addOption');
+
+    // مسارات الـ API
+    const API_EXAMS = '/api/exams';
+    const API_SECTIONS = '/api/sections';
+    const API_QUESTIONS = '/api/questions';
+
+    // ====== وظيفة مساعدة لعرض الرسائل ======
+    function displayMessage(text, isSuccess = true) {
+        messageElement.className = isSuccess 
+            ? 'text-green-600 text-center mt-4 font-bold' 
+            : 'text-red-600 text-center mt-4 font-bold';
+        messageElement.textContent = (isSuccess ? '✅ ' : '❌ ') + text;
+    }
+
+    // ====== تحميل الامتحانات ======
+    async function loadExams() {
+      examSelect.innerHTML = '<option value="">— جاري تحميل الامتحانات —</option>';
+      try {
+        const res = await fetch(API_EXAMS);
+        if (!res.ok) throw new Error('فشل جلب الامتحانات من الخادم');
+        const exams = await res.json();
+        
+        examSelect.innerHTML = '<option value="">— اختر الامتحان —</option>';
+        if (exams.length > 0) {
+            exams.forEach(exam => {
+              const opt = document.createElement('option');
+              opt.value = exam.id;
+              opt.textContent = exam.title;
+              examSelect.appendChild(opt);
+            });
+        } else {
+            examSelect.innerHTML = '<option value="">— لا توجد امتحانات متاحة —</option>';
+        }
+
+      } catch (error) {
+        console.error("❌ خطأ في تحميل الامتحانات:", error);
+        examSelect.innerHTML = '<option value="">— فشل تحميل الامتحانات —</option>';
+        displayMessage('فشل تحميل الامتحانات. تحقق من اتصال الخادم.', false);
+      }
+    }
+
+    // ====== تحميل الأقسام حسب الامتحان ======
+    async function loadSections(examId) {
+      sectionSelect.innerHTML = '<option value="">— جاري التحميل —</option>';
+      sectionSelect.disabled = true;
+      if (!examId) return;
+      
+      try {
+        const res = await fetch(`${API_SECTIONS}?exam_id=${examId}`);
+        if (!res.ok) throw new Error('فشل جلب الأقسام');
+        const sections = await res.json();
+        
+        sectionSelect.innerHTML = '<option value="">— اختر القسم —</option>';
+        if (sections.length > 0) {
+          sections.forEach(sec => {
+            const opt = document.createElement('option');
+            opt.value = sec.id;
+            opt.textContent = sec.title;
+            sectionSelect.appendChild(opt);
+          });
+          sectionSelect.disabled = false;
+        } else {
+          sectionSelect.innerHTML = '<option value="">— لا توجد أقسام —</option>';
+        }
+      } catch (error) {
+        console.error("❌ خطأ في تحميل الأقسام:", error);
+        sectionSelect.innerHTML = '<option value="">— خطأ في الاتصال —</option>';
+      }
+    }
+
+    // ====== عرض / إخفاء حقل الخيارات ======
+    questionType.addEventListener('change', e => {
+      if (e.target.value === 'multiple_choice') {
+        optionsContainer.classList.remove('hidden');
+        if (optionsList.children.length === 0) {
+            addOptionField(true);
+            addOptionField(false);
+            addOptionField(false);
+        }
+      } else {
+        optionsContainer.classList.add('hidden');
+        optionsList.innerHTML = '';
+      }
+    });
+
+    // ====== إضافة خيار جديد ======
+    addOptionBtn.addEventListener('click', () => addOptionField(false));
+
+    function addOptionField(isCorrect = false) {
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-2';
+      div.innerHTML = `
+        <input type="radio" name="correct_option" class="accent-[#800020]" ${isCorrect ? 'checked' : ''} />
+        <input type="text" class="option-input flex-1 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#800020]" placeholder="اكتب الخيار..." required />
+        <button type="button" class="removeOption bg-gray-200 hover:bg-gray-300 text-sm px-2 py-1 rounded text-gray-700">✕</button>
+      `;
+      optionsList.appendChild(div);
+      div.querySelector('.removeOption').addEventListener('click', () => div.remove());
+    }
+
+    // ====== إرسال النموذج ======
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'جاري الإضافة...';
+      messageElement.textContent = ''; 
+      
+      const qType = questionType.value;
+      const questionText = document.getElementById('question_text').value.trim();
+
+      let data = {
+        section_id: sectionSelect.value,
+        text: questionText, // <-- متوافق مع Server.js
+        type: qType,
+        order: 1
+      };
+
+      if (!data.section_id || !data.text) {
+          displayMessage('يجب اختيار الامتحان والقسم وكتابة نص السؤال.', false);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'إضافة السؤال';
+          return;
+      }
+      
+      if (qType === 'multiple_choice') {
+        const optionInputs = document.querySelectorAll('.option-input');
+        const correctRadios = document.querySelectorAll('input[name="correct_option"]');
+        const options = [];
+        let hasCorrectAnswer = false;
+        let validOptionCount = 0;
+
+        optionInputs.forEach((input, i) => {
+          const text = input.value.trim();
+          if (text) {
+            validOptionCount++;
+            const is_correct = correctRadios[i].checked;
+            options.push({ text, is_correct });
+            if (is_correct) hasCorrectAnswer = true;
+          }
+        });
+
+        if (validOptionCount < 2 || !hasCorrectAnswer) {
+          displayMessage('يجب توفير خيارين على الأقل وتحديد إجابة صحيحة واحدة.', false);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'إضافة السؤال';
+          return;
+        }
+
+        data.options = options;
+      }
+
+      console.log("🟢 Data before submit:", data);
+
+      try {
+        const res = await fetch(API_QUESTIONS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          displayMessage('تم إضافة السؤال بنجاح');
+          form.reset();
+          optionsContainer.classList.add('hidden');
+          optionsList.innerHTML = '';
+          loadSections(examSelect.value);
+        } else {
+          throw new Error(result.error || 'حدث خطأ غير معروف أثناء الإضافة');
+        }
+      } catch (error) {
+        console.error("❌ خطأ في الإرسال:", error);
+        displayMessage(error.message, false);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'إضافة السؤال';
+      }
+    });
+
+    // ====== إعادة تحميل الأقسام عند تغيير الامتحان ======
+    examSelect.addEventListener('change', e => loadSections(e.target.value));
+    
+    // بدء تحميل الامتحانات عند تهيئة الصفحة
+    loadExams();
+  </script>
+</body>
+</html>

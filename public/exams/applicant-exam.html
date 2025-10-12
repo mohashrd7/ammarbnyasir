@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>امتحان المتقدمين للعام الدراسي 2025/2026</title>
+
+ <script src="https://cdn.tailwindcss.com"></script>
+
+ <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+ :root {
+ --qatar-burgundy: #800020;
+ --bg-light: #FFFFFF;
+ --text-dark: #1f2937;
+ }
+
+ body {
+ font-family: 'Cairo', ui-sans-serif, system-ui;
+ background-color: #F8F9FA;
+ color: var(--text-dark);
+ line-height: 1.6;
+ }
+
+ .q-card {
+ background-color: var(--bg-light);
+ border: none;
+ box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+ padding: 3rem;
+ border-radius: 20px;
+ max-width: 500px;
+ margin: 4rem auto;
+ position: relative;
+ }
+
+ label {
+ display: block;
+ font-weight: 700;
+ margin-bottom: 0.5rem;
+ color: var(--qatar-burgundy);
+ font-size: 1.1rem;
+ }
+
+ input[type="text"] {
+ width: 100%;
+ padding: 0.75rem 0.5rem;
+ margin-bottom: 1.5rem;
+ border: none;
+ border-bottom: 3px solid var(--qatar-burgundy);
+ font-size: 1.1rem;
+ background-color: transparent;
+ transition: border-bottom-color 0.3s;
+ }
+
+ input[type="text"]:focus {
+ outline: none;
+ border-bottom-color: #A61E4D;
+ background-color: #FFF5F7;
+ }
+
+ .btn-primary {
+ background-color: var(--qatar-burgundy);
+ color: white;
+ transition: background-color 0.3s, transform 0.1s;
+ position: relative;
+ overflow: hidden;
+ }
+
+ .btn-primary:hover {
+ background-color: #A61E4D;
+ transform: translateY(-2px);
+ box-shadow: 0 4px 8px rgba(128, 0, 32, 0.3);
+ }
+
+ /* Loader */
+ .loader {
+ display: inline-block;
+ width: 24px;
+ height: 24px;
+ border: 3px dotted #fff;
+ border-radius: 50%;
+ animation: spin 1s linear infinite;
+ vertical-align: middle;
+ margin-left: 0.5rem;
+ }
+
+ @keyframes spin {
+ 0% { transform: rotate(0deg); }
+ 100% { transform: rotate(360deg); }
+ }
+
+ /* Modal */
+ .modal {
+ display: none;
+ position: fixed;
+ z-index: 50;
+ left: 0;
+ top: 0;
+ width: 100%;
+ height: 100%;
+ overflow: auto;
+ background-color: rgba(0,0,0,0.5);
+ align-items: center;
+ justify-content: center;
+ }
+
+ .modal-content {
+ background-color: var(--bg-light);
+ padding: 2rem;
+ border-radius: 16px;
+ max-width: 400px;
+ width: 90%;
+ box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+ text-align: center;
+ }
+
+ .modal-content h2 {
+ font-size: 1.5rem;
+ margin-bottom: 1rem;
+ color: var(--qatar-burgundy);
+ font-weight: 700;
+ }
+
+ .exam-time-box {
+ border: 1px solid #ccc;
+ padding: 0.5rem;
+ border-radius: 8px;
+ margin: 0.3rem 0;
+ background-color: #f9f9f9;
+ font-weight: 600;
+ color: #333;
+ }
+
+ .close-btn {
+ margin-top: 1rem;
+ padding: 0.5rem 1.5rem;
+ background-color: var(--qatar-burgundy);
+ color: #fff;
+ border: none;
+ border-radius: 8px;
+ cursor: pointer;
+ font-weight: bold;
+ }
+
+ .close-btn:hover {
+ background-color: #A61E4D;
+ }
+</style>
+</head>
+
+<body>
+<div class="q-card">
+ <h1 class="text-2xl font-extrabold text-center mb-6" style="color: var(--qatar-burgundy);">
+ امتحان المتقدمين للعام الدراسي 2025/2026
+ </h1>
+
+ <form id="examLoginForm">
+ <label for="token">رمز الدخول</label>
+ <input type="text" id="token" placeholder="أدخل رمز الدخول" required />
+ <button type="submit" class="btn-primary w-full p-4 rounded-xl font-bold mt-4 text-lg">
+  دخول الامتحان
+ </button>
+ </form>
+</div>
+
+ <div id="modal" class="modal">
+ <div class="modal-content">
+ <h2 id="modalTitle">خطأ في الدخول</h2>
+ <div id="modalMessage"></div>
+ <button class="close-btn" id="closeModal">حسناً</button>
+ </div>
+</div>
+
+<script>
+ const form = document.getElementById("examLoginForm");
+ const button = form.querySelector("button");
+ const modal = document.getElementById("modal");
+ const modalTitle = document.getElementById("modalTitle");
+ const modalMessage = document.getElementById("modalMessage");
+ const closeModal = document.getElementById("closeModal");
+
+ closeModal.addEventListener("click", () => {
+ modal.style.display = "none";
+ });
+
+ form.addEventListener("submit", async (e) => {
+ e.preventDefault();
+
+ const token = document.getElementById("token").value.trim();
+ if (!token) return;
+
+ // عرض اللودينج
+ const loader = document.createElement("span");
+ loader.className = "loader";
+ button.appendChild(loader);
+ button.disabled = true;
+
+ try {
+  const res = await fetch("/api/validate_exam_token", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ token })
+  });
+
+  const data = await res.json();
+
+  if (!data.success) {
+  modalTitle.textContent = "فشل التحقق أو الدخول";
+
+  let messageHtml = `<p>${data.error || "حدث خطأ غير معروف."}</p>`;
+
+  if (data.exam && data.exam.startDateStr) {
+   messageHtml += `
+   <p class="mt-4">وقت بدء الامتحان المخطط له:</p>
+   <div class="exam-time-box">التاريخ: ${data.exam.startDateStr}</div>
+   <div class="exam-time-box">الساعة: ${data.exam.startTimeStr}</div>
+   <p>جميع الأوقات بتوقيت قطر الرسمي.</p>
+   `;
+  } else if (data.error === "رمز دخول غير صحيح أو غير مسجل.") {
+   messageHtml = `<p>${data.error}</p>`;
+  }
+
+  modalMessage.innerHTML = messageHtml;
+  modal.style.display = "flex";
+  return;
+  }
+
+  // 1. تخزين بيانات الأمان والوقت
+  localStorage.setItem('applicantId', data.applicantId);
+  sessionStorage.setItem('examValidationToken', data.validationToken);
+  sessionStorage.setItem('examEndTime', data.examEndTime);
+  
+  // 2. ✅ التعديل: التوجيه مع تمرير applicant_id كمتغير استعلام (Query Parameter)
+  const applicantId = data.applicantId;
+  const examId = data.examId;
+  window.location.href = `/exam/${examId}/questions?applicant_id=${applicantId}`;
+  
+ } catch (err) {
+  modalTitle.textContent = "خطأ في الاتصال";
+  modalMessage.textContent = "حدث خطأ أثناء الاتصال بالسيرفر. يرجى المحاولة مرة أخرى.";
+  modal.style.display = "flex";
+  console.error(err);
+ } finally {
+  // إزالة اللودينج
+  const currentLoader = button.querySelector(".loader");
+  if (currentLoader) currentLoader.remove();
+  button.disabled = false;
+ }
+ });
+</script>
+</body>
+</html>

@@ -1,0 +1,625 @@
+body {
+font-family: 'Tajawal', sans-serif;
+  color: #48494a;
+  background-image: url(../images/body-bg.jpg);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+.layout_padding {
+  padding: 75px 0;
+}
+
+.layout_padding2 {
+  padding: 45px 0;
+}
+
+.layout_padding2-top {
+  padding-top: 45px;
+}
+
+.layout_padding-top {
+  padding-top: 75px;
+}
+
+.layout_padding-bottom {
+  padding-bottom: 75px;
+}
+
+.call_to-btn {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  text-transform: uppercase;
+  background-color: #660022;
+  border: 1px solid transparent;
+  color: #fff;
+  transition: all 0.3s ease 0s;
+}
+
+.hero_section {
+  padding-top: 100px; /* أو حسب ارتفاع الـ navbar */
+}
+
+.hero_section .call_to-btn {
+  padding: 12px 35px;
+}
+
+.call_to-btn img {
+  width: 18px;
+  margin-left: 10px;
+}
+
+.btn_on-hover {
+  transition: all 0.3s ease 0s;
+}
+
+.call_to-btn:hover,
+.btn_on-hover:hover {
+  color: #fff;
+  -webkit-box-shadow: 0px 5px 10px -5px rgba(0, 0, 0, 0.7);
+  -moz-box-shadow: 0px 5px 10px -5px rgba(0, 0, 0, 0.7);
+  box-shadow: 0px 5px 10px -5px rgba(0, 0, 0, 0.7);
+  color: #fff;
+  transform: translateY(-7px);
+}
+
+.contact-btn {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  text-transform: uppercase;
+  background-color: #660022;
+  border: 1px solid transparent;
+  color: #fff;
+  transition: all 0.3s ease 0s;
+}
+
+.hero_section .contact-btn {
+  padding: 12px 35px;
+}
+
+.contact-btn img {
+  width: 18px;
+  margin-left: 10px;
+}
+
+.btn_on-hover {
+  transition: all 0.3s ease 0s;
+}
+
+.contact-btn:hover,
+.btn_on-hover:hover {
+  color: #fff;
+  -webkit-box-shadow: 0px 5px 10px -5px rgba(0, 0, 0, 0.7);
+  -moz-box-shadow: 0px 5px 10px -5px rgba(0, 0, 0, 0.7);
+  box-shadow: 0px 5px 10px -5px rgba(0, 0, 0, 0.7);
+  color: #fff;
+  transform: translateY(-7px);
+}
+
+.main-heading {
+  color: #660022;
+  font-weight: bold;
+  text-align: center;
+}
+
+/*header section*/
+
+.custom-modal-header {
+  background-color: #660022; /* أصفر غامق */
+  color: #fff;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  justify-content: center;
+}
+
+.custom-modal-header .close {
+  position: absolute;
+  left: 15px;
+  top: 15px;
+  color: #fff;
+  opacity: 1;
+  font-size: 1.2rem;
+}
+
+.modal-content {
+  border-radius: 12px;
+  padding: 20px;
+  direction: rtl;
+}
+
+.modal-body p {
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+.modal-body i {
+  color: #660022;
+  margin-left: 8px;
+}
+
+
+.header_section {
+  padding-top: 10px;
+}
+
+nav.navbar.navbar-expand-lg {
+
+  padding: 5px 0;
+}
+
+.custom_nav-container.navbar-expand-lg .navbar-nav .nav-link {
+  padding: 10px 20px;
+  color: #ffffff;
+  font-size: 15px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.custom_nav-container.navbar-expand-lg .navbar-nav .nav-item.active .nav-link {
+  color: #ffffff;
+}
+
+
+a,
+a:hover,
+a:focus {
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  color: initial;
+}
+
+.btn,
+.btn:focus {
+  outline: none !important;
+  box-shadow: none;
+}
+
+.top_container {
+  position: relative;
+  overflow: hidden;
+}
+
+.top_container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0; /* مهم */
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(../images/hero-bgf.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: left top;
+  z-index: -1;
+}
+
+
+/* أولوية للموبايل */
+@media (max-width: 768px) {
+  .top_container::before {
+    background-position: left top !important; /* أهم سطر للحل */
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+  }
+}
+
+
+
+
+
+
+
+
+
+.top_container.sub_pages::before {
+  background-size: 400px 200px;
+  background-position: top left;
+}
+
+.top_container.sub_pages {
+  height: 35vh;
+}
+
+.top_container.sub_page {
+  height: auto;
+}
+/* ✅ الشعار والاسم */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand img {
+  width: 65px;
+  filter: brightness(0) invert(1); /* يجعل اللوجو أبيض */
+}
+
+.navbar-brand span {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+    padding-left: 200;
+  margin-right: 7px;
+  margin-left: 200;
+}
+
+/* ✅ الحاوية المخصصة: الشعار يمين، القوائم يسار */
+/* ✅ الحاوية المخصصة: الشعار يمين، القوائم يسار */
+.custom_nav-container {
+  z-index: 99999;
+  padding: 15px 0;
+  display: flex;
+  flex-direction: row; /* الشعار يمين، القوائم يسار */
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  background-color: transparent; /* مهم لبداية الصفحة */
+}
+
+.custom_nav-container.scrolled {
+  background-color: rgba(70, 0, 23, 0.9); /* عنابي غامق شفاف */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+
+/* ✅ زر البحث */
+.custom_nav-container .nav_search-btn {
+  background-image: url(../images/search-icon.png);
+  background-size: 22px;
+  background-repeat: no-repeat;
+  background-position-y: 7px;
+  width: 35px;
+  height: 35px;
+  padding: 0;
+  border: none;
+}
+
+/* ✅ زر القائمة في الشاشات الصغيرة */
+.custom_nav-container .navbar-toggler {
+  outline: none;
+}
+
+.custom_nav-container .navbar-toggler .navbar-toggler-icon {
+  background-image: url(../images/menu.png);
+  background-size: 40px;
+}
+
+/* ✅ عرض القوائم بشكل أفقي */
+.navbar-nav {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  margin-bottom: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+/* ✅ تنسيق الروابط */
+.navbar-nav .nav-link {
+  padding-left: 0;
+  padding-right: 0;
+  color: #ffffff;
+  font-size: 15px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+
+
+
+/*end header section*/
+
+/* hero section */
+.hero-container {
+  display: flex;
+  padding-top: 80px;
+  padding-bottom: 100px;
+}
+
+.hero_detail-box {
+  width: 45%;
+}
+
+.hero_img-container {
+  width: 55%;
+}
+
+.hero_detail-box {
+  color: #fefeff;
+}
+
+.hero_detail-box h1 {
+  text-transform: uppercase;
+  font-size: 50px;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+
+.hero_detail-box p {
+  margin-top: 20px;
+  margin-bottom: 35px;
+}
+
+
+/* end hero section */
+
+/* about section */
+.about_img-box {
+  width: 65%;
+  margin: 40px auto;
+}
+
+/* about section */
+
+/* teacher container */
+.teacher_section .card {
+  border: none;
+  background-color: transparent;
+}
+
+.teacher_section .card-title {
+  text-align: center;
+  color: #48494a;
+}
+
+/* end teacher container */
+
+/* vehicle section */
+.vehicle_img-box {
+  width: 60%;
+  margin: 0 auto;
+}
+
+.vehicle_section .carousel-control-prev,
+.vehicle_section .carousel-control-next {
+  opacity: 1;
+}
+
+.vehicle_section .carousel-control-prev-icon,
+.vehicle_section .carousel-control-next-icon {
+  width: 50px;
+  height: 50px;
+  background-color: #660022;
+  border-radius: 100%;
+  background-size: 10px;
+  background-position: center;
+}
+
+.vehicle_section .carousel-control-prev-icon {
+  background-image: url(../images/prev.png);
+}
+
+.vehicle_section .carousel-control-next-icon {
+  background-image: url(../images/next.png);
+}
+
+
+
+/* end vehicle section */
+
+/* client section */
+.client_section {
+  background-image: url(../images/shape-1.png);
+  background-repeat: no-repeat;
+
+  background-position: right;
+
+  background-size: 18%;
+}
+
+.client_container {
+  width: 80%;
+  margin: 0 auto;
+  padding: 35px;
+  background-color: #fefeff;
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(163, 158, 163, 1);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(163, 158, 163, 1);
+  box-shadow: 0px 0px 5px 0px rgba(163, 158, 163, 1);
+  border-radius: 20px;
+}
+
+.client_detail-box h4 {
+  color: #660022;
+}
+
+.client_detail-box span {
+  text-transform: uppercase;
+  color: #48494a;
+}
+
+.client_detail .client_img-box {
+  width: 100px;
+  margin-right: 15px;
+}
+
+.client_detail .client_img-box img {
+  width: 100%;
+}
+
+
+
+
+/* end client section */
+
+
+/* contact section */
+.contact_section {
+  background-image: url(../images/shape-2.svg);
+  background-repeat: no-repeat;
+  background-size: 14%;
+  background-position: left center;
+}
+
+.contact-form {
+  padding: 25px;
+  border-radius: 20px;
+}
+
+.contact-form input {
+  border: none;
+  outline: none;
+  background-color: #dedee0;
+  width: 100%;
+  margin: 10px 0;
+  padding: 7px 10px;
+  color: #660022;
+  font-weight: 500;
+}
+
+.contact-form .input_message {
+  height: 120px;
+}
+
+.contact-form input::placeholder {
+  color: #fff;
+}
+
+.contact-form button {
+  border: none;
+  outline: none;
+  padding: 7px 50px;
+  text-transform: uppercase;
+  margin-top: 25px;
+  background-color: #660022;
+  color: #fff;
+}
+
+/* ✅ تنسيق المودال المخصص */
+#customModal {
+  display: none;
+  position: fixed;
+  z-index: 10500;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+#customModal .modal-content {
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  font-size: 18px;
+  color: #660022;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ✅ شكل دائرة التحميل */
+.loader {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #660022;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+  display: none;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+/* end contact section */
+
+/* admission section */
+
+
+.admission_section .container-fluid.position-relative {
+  height: 500px;
+}
+
+.admission_container {
+  width: 770px;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+}
+
+
+.admission_img-box {
+  width: 50%;
+  border-radius: 25px 0 0 25px;
+  overflow: hidden;
+}
+
+.admission_detail {
+  width: 50%;
+  background-color: #660022;
+  padding: 20px;
+  color: #fefeff;
+  border-radius: 0 25px 25px 0;
+}
+
+
+.admission_img-box img {
+  width: 100%;
+}
+
+.admission_detail .admission_btn {
+  background-color: #fec913;
+  padding: 7px 35px;
+  color: #fefeff;
+  font-size: 15px;
+  border-radius: 5px;
+}
+
+/* end admission section */
+
+/* call section */
+.call_section h2 {
+  text-align: center;
+  margin: 15px 0;
+}
+
+.landing_section .number_heading {
+  color: #fec913;
+}
+
+.landing_section p {
+  text-align: center;
+  margin-top: 15px;
+}
+
+/* end call section */
+
+/* footer section*/
+
+.footer_section {
+  background-color: #660022;
+  padding: 20px 0;
+  font-family: "Roboto", sans-serif;
+}
+
+.footer_section p {
+  color: #fdfdfe;
+  margin: 0;
+  text-align: center;
+}
+
+.footer_section a {
+  color: #fdfdfe;
+}
+
+/* end footer section*/

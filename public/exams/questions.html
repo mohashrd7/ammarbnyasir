@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>منصة الاختبارات — تقديم المتقدمين</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+ /* الألوان الأساسية: العنابي والذهبي */
+ :root {
+ --qatar-burgundy: #800020; /* عنابي أساسي */
+ --qatar-gold: #D4AF37; /* ذهبي للإبراز */
+ --bg-light: #FFFFFF; /* خلفية بيضاء */
+ --text-dark: #1f2937; /* لون النص الداكن */
+ }
+ body {
+ font-family: 'Cairo', ui-sans-serif, system-ui;
+ background-color: #F8F9FA;
+ color: var(--text-dark);
+ }
+ .q-card {
+ background-color: var(--bg-light);
+ border: 1px solid #E5E7EB;
+ box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+ }
+ .btn-primary {
+ background-color: var(--qatar-burgundy);
+ color: white;
+ transition: background-color 0.3s, transform 0.1s;
+ }
+ .btn-primary:hover {
+ background-color: #A61E4D;
+ transform: translateY(-1px);
+ }
+ .rec-btn {
+ width: 64px; height: 64px; border-radius: 9999px;
+ display: flex; align-items: center; justify-content: center;
+ background-color: #EF4444;
+ box-shadow: 0 4px 8px rgba(239, 68, 68, 0.5);
+ transition: all 0.2s;
+ }
+ .rec-btn[data-state="recording"] {
+  background-color: #B91C1C;
+  animation: pulse-red 1.5s infinite;
+ }
+ @keyframes pulse-red {
+ 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+ 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+ 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+ }
+ .wave-container {
+ height: 48px; 
+ background-color: #F3F4F6;
+ border-radius: 8px;
+ overflow: hidden;
+ border: 1px solid #D1D5DB;
+ }
+ textarea, input[type="text"], input[type="email"], input[type="password"], input[type="radio"] {
+ background-color: #FFFFFF !important;
+ border: 1px solid #D1D5DB !important;
+ color: var(--text-dark) !important;
+ }
+ .option-label {
+  background-color: #F8F9FA;
+  border: 1px solid #E5E7EB;
+  transition: all 0.2s;
+ }
+ .option-label:hover {
+  background-color: #EFF6FF;
+  border-color: #BFDBFE;
+ }
+ .option-radio:checked + .option-label {
+  border-color: var(--qatar-burgundy);
+  background-color: #FEE2E2;
+  box-shadow: 0 0 0 2px rgba(128, 0, 32, 0.3);
+ }
+ #timerBox {
+  background-color: #FEF3C7;
+  border: 2px solid var(--qatar-gold);
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 1.5rem;
+ }
+ #timerBox h3 {
+  color: var(--text-dark);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+ }
+ #countdownTimer {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--qatar-burgundy);
+  font-family: 'Cairo', monospace;
+ }
+ #timerBox.danger {
+  background-color: #FEE2E2;
+  border-color: #EF4444;
+ }
+ #progressInner {
+  background-color: var(--qatar-burgundy);
+  transition: width 0.5s ease-in-out;
+}
+</style>
+</head>
+
+<body>
+<div class="max-w-7xl mx-auto p-6">
+<header class="max-w-7xl mx-auto p-6"> 
+<div class="flex items-center justify-between mb-4">
+    <div class="logo-box q-card p-3 rounded-xl border-none flex items-center gap-3 order-2 mx-auto">
+        <img src="/exams/logo.svg" alt="logo" class="h-12 object-contain rounded" onerror="this.style.opacity=0.6;" />
+        <div>
+            <div class="font-extrabold text-gray-900 text-xl">منصة الاختبارات</div>
+            <div class="text-xs text-gray-500">تقديم الإجابات الفورية</div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-4 order-1">
+        <button id="openRegBtn" class="px-5 py-2 rounded-xl border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition hidden">تسجيل الدخول / التسجيل</button>
+    </div>
+</div>
+</header>
+<main class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <div class="lg:col-span-3 mb-6">
+        <div class="text-gray-800 text-2xl font-bold border-r-4 border-qatar-burgundy pr-3" id="examTitle">جارٍ تحميل الامتحان...</div>
+    </div>
+    
+    <section class="lg:col-span-3">
+        <h2 class="text-3xl font-bold mb-6 text-gray-800 border-r-4 border-qatar-burgundy pr-3">الأسئلة المطروحة</h2>
+        <div id="questionsContainer" class="space-y-8">
+            <div class="text-center text-gray-500 p-8 q-card rounded-xl" id="initialLoadingMessage">جاري التحقق وبدء الامتحان...</div>
+        </div>
+    </section>
+
+    <aside class="lg:col-span-1 q-card p-6 rounded-2xl text-gray-700 sticky top-6 self-start">
+        <h3 class="font-extrabold text-xl mb-4 border-b border-gray-200 pb-3 text-qatar-burgundy">لوحة معلومات المتقدم</h3>
+        
+        <div id="timerBox" class="hidden">
+            <h3>الوقت المتبقي:</h3>
+            <div id="countdownTimer">00:00:00</div>
+        </div>
+
+        <div class="space-y-3">
+            <p class="text-sm">
+                <span class="font-bold text-gray-800">الامتحان:</span>
+                <span class="text-gray-500 block" id="examInfo">جارٍ تحميل معلومات الامتحان...</span>
+            </p>
+            <div class="text-sm text-gray-500">حالة التقدم</div>
+            <div id="progressBar" class="w-full bg-gray-200 rounded-full h-3 mt-2 overflow-hidden">
+                <div id="progressInner" class="h-full rounded-full bg-qatar-burgundy shadow-inner" style="width:0%"></div>
+            </div>
+            <div class="text-right text-xs pt-1 text-qatar-burgundy font-semibold" id="progressText">0% مكتمل</div>
+        </div>
+        
+        <div class="mt-6 pt-4 border-t border-gray-200">
+            <button id="finishExamBtn" class="btn-primary w-full p-3 rounded-xl font-bold text-lg transition duration-200">
+                إنهاء الامتحان وإرسال الإجابات النهائية
+            </button>
+        </div>
+    </aside>
+</main>
+ <footer class="mt-12 text-center text-gray-500 pt-4 border-t border-gray-200">© منصة الاختبارات — كل الحقوق محفوظة.</footer>
+</div>
+
+ <div id="regModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+ <div class="bg-white rounded-2xl w-full max-w-md p-8 shadow-2xl">
+ <h3 class="text-2xl font-bold mb-6 text-qatar-burgundy">تسجيل الدخول أو إنشاء حساب</h3>
+ <form id="regForm" class="space-y-4">
+  <input required type="text" id="reg_name" placeholder="الاسم الكامل" class="w-full p-3 border rounded-lg focus:ring-qatar-burgundy focus:border-qatar-burgundy" />
+  <input required type="email" id="reg_email" placeholder="البريد الإلكتروني" class="w-full p-3 border rounded-lg focus:ring-qatar-burgundy focus:border-qatar-burgundy" />
+  <input required type="password" id="reg_pass" placeholder="كلمة المرور" class="w-full p-3 border rounded-lg focus:ring-qatar-burgundy focus:border-qatar-burgundy" />
+  <div class="flex gap-3 pt-2">
+  <button type="submit" class="flex-1 btn-primary p-3 rounded-lg font-semibold">تسجيل / دخول</button>
+  <button type="button" id="closeReg" class="flex-1 border border-gray-300 text-gray-700 p-3 rounded-lg hover:bg-gray-100 transition">إلغاء</button>
+  </div>
+ </form>
+ </div>
+</div>
+
+<template id="questionTemplate">
+ <article class="q-card p-6 rounded-2xl text-gray-800 shadow-xl" data-question-id="">
+ <header class="flex items-start justify-between gap-4 mb-5 border-b border-gray-200 pb-4">
+  <div>
+  <div class="text-sm text-gray-500 font-semibold">سؤال <span class="q-index"></span></div>
+  <h2 class="q-text font-extrabold text-xl mt-1"></h2>
+  <div class="text-sm text-gray-600 font-medium q-section-title"></div>
+  </div>
+ </header>
+
+ <div class="answer-area space-y-4">
+  <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
+  
+  <div class="flex flex-col items-center flex-shrink-0 audio-controls-group">
+   <button class="rec-btn text-2xl text-white" title="اضغط للتسجيل/الإيقاف" data-state="idle">
+   🎙️
+   </button>
+   <div class="text-xs mt-2 text-gray-500 text-center recording-timer">00:00</div>
+  </div>
+
+  <div class="flex-1 w-full space-y-3">
+   
+   <div class="wave-container mb-2">
+    <canvas class="wave-canvas w-full h-12" height="48"></canvas>
+   </div>
+   
+   <div class="audio-player-wrapper hidden bg-gray-100 p-3 rounded-lg flex items-center gap-3">
+    <audio class="audio-player flex-1" controls></audio>
+    <button class="clear-audio text-red-500 text-sm hover:underline">حذف التسجيل</button>
+   </div>
+
+   <textarea class="text-input w-full p-3 rounded-lg focus:ring-1 focus:ring-qatar-burgundy" placeholder="أو اكتب إجابتك هنا..." rows="3"></textarea>
+  </div>
+
+  </div>
+  <button class="submit-answer btn-primary p-2 px-4 rounded-lg text-sm">إرسال الإجابة</button>
+  <p class="text-red-500 text-sm mt-2 submission-error hidden">لا يمكن الإرسال، انتهى وقت الامتحان.</p>
+ </div>
+ 
+ <div class="options-area space-y-3 pt-4 border-t border-gray-200 hidden">
+  <p class="text-gray-600 font-semibold mb-2">اختر الإجابة الصحيحة:</p>
+  <button class="submit-option btn-primary p-2 px-4 rounded-lg text-sm mt-4">إرسال الاختيار</button>
+  <p class="text-red-500 text-sm mt-2 submission-error hidden">لا يمكن الإرسال، انتهى وقت الامتحان.</p>
+ </div>
+ 
+ <div class="text-xs text-gray-500 mt-4 pt-3 border-t border-gray-200">
+  حالة الإجابة: <span class="recording-state text-qatar-burgundy font-semibold">لم يتم الإرسال</span>
+ </div>
+ </article>
+</template>
+
+<script>
+ 
+ // 1. استخلاص examId من الرابط بطريقة آمنة
+ const pathSegments = window.location.pathname.split('/');
+ // التأكد من أن examId موجود
+ const examId = pathSegments.length > 2 ? pathSegments[2] : null; 
+ 
+ // ✅ التعديل هنا: قراءة applicant_id من متغيرات الاستعلام (Query Parameters)
+ const urlParams = new URLSearchParams(window.location.search);
+ const applicantIdFromURL = urlParams.get('applicant_id');
+ 
+ // 2. تعريف مسارات الـ API (المفترض أنها تعمل على server.js)
+ const API = {
+ exam: `/api/exams/${examId}`,
+ questions: `/api/exams/${examId}/questions`,
+ options: `/api/questions/options`, 
+ uploadAudio: '/api/upload/audio',
+ answers: '/api/answers',
+ register: '/api/applicant/register' 
+ };
+
+ // دوال مساعدة للاختصار
+ const $ = (s, el=document) => el.querySelector(s);
+ const progressInner = $('#progressInner');
+ const progressText = $('#progressText');
+ const questionsContainer = $('#questionsContainer');
+ const timerBox = $('#timerBox');
+ const countdownTimer = $('#countdownTimer');
+ const examTitleEl = $('#examTitle');
+
+ let totalQuestions = 0;
+ let answeredQuestions = 0;
+ let examEndTime = null; 
+ let timerInterval;
+ 
+ // ===================================
+ // 🛡️ التحقق الأمني من الجلسة (مفتاح الأمان)
+ // ===================================
+ const validationToken = sessionStorage.getItem('examValidationToken'); 
+ // 🛑 استخدام applicantId المقروء من الرابط
+ const applicantId = applicantIdFromURL;
+ const examEndTimeISO = sessionStorage.getItem('examEndTime');
+
+ if (!examId || !validationToken || !applicantId || !examEndTimeISO) {
+  questionsContainer.innerHTML = '<div class="text-center text-red-700 p-8 q-card rounded-xl">❌ **فشل التحقق الأمني**. يجب الدخول عبر صفحة رمز الدخول أولاً. جاري توجيهك...</div>';
+  $('#openRegBtn').classList.remove('hidden'); 
+  
+  setTimeout(() => {
+   // التوجيه لصفحة الدخول الرئيسية للمتقدمين (applicant-exam.html)
+   window.location.href = `/applicant-exam`; 
+  }, 3000);
+  throw new Error("Security check failed, redirecting.");
+ }
+
+  examEndTime = new Date(examEndTimeISO); 
+
+ // ===================================
+ // ⏱️ مؤقت العد التنازلي
+ // ===================================
+ function startTimer() {
+  timerBox.classList.remove('hidden');
+  
+  const updateCountdown = () => {
+   const now = new Date().getTime();
+   const distance = examEndTime.getTime() - now; 
+
+   if (distance < 1000) { 
+    clearInterval(timerInterval);
+    countdownTimer.textContent = "انتهى الوقت!";
+    
+    // تعطيل جميع الأزرار ومنع الإرسال
+    document.querySelectorAll('.submit-answer, .submit-option, .rec-btn').forEach(btn => {
+     btn.disabled = true;
+     btn.classList.add('opacity-50', 'cursor-not-allowed');
+    });
+    document.querySelectorAll('.submission-error').forEach(el => el.classList.remove('hidden'));
+    
+    alert("انتهى وقت الامتحان! سيتم إرسال إجاباتك المحفوظة النهائية.");
+    return;
+   }
+
+   const hours = Math.floor(distance / (1000 * 60 * 60));
+   const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+   const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+   const timeStr = 
+    String(hours).padStart(2, '0') + ":" +
+    String(minutes).padStart(2, '0') + ":" +
+    String(seconds).padStart(2, '0');
+   
+   countdownTimer.textContent = timeStr;
+
+   if (distance < 5 * 60 * 1000) { 
+    timerBox.classList.add('danger');
+   } else {
+    timerBox.classList.remove('danger');
+   }
+  };
+  
+  timerInterval = setInterval(updateCountdown, 1000);
+  updateCountdown();
+ }
+
+
+ // ===================================
+ // 📊 دوال شريط التقدم
+ // ===================================
+ function updateProgress() {
+  if (totalQuestions === 0) {
+   progressInner.style.width = '0%';
+   progressText.textContent = '0% مكتمل';
+   return;
+  }
+  const progress = Math.round((answeredQuestions / totalQuestions) * 100);
+  progressInner.style.width = `${progress}%`;
+  progressText.textContent = `${progress}% مكتمل`;
+ }
+ 
+  // لزيادة عداد الإجابات وتحديث الشريط
+ function markAsAnswered() {
+  answeredQuestions = Math.min(answeredQuestions + 1, totalQuestions); // للتأكد من عدم تجاوز العدد الإجمالي
+  updateProgress();
+ }
+
+ // ... (قبل الدالة loadExam)
+
+// ===================================
+// 🏁 دالة إنهاء الامتحان والإرسال الجماعي
+// ===================================
+async function finishExamAndSubmitAll() {
+    const finishBtn = $('#finishExamBtn');
+    finishBtn.disabled = true;
+    finishBtn.textContent = 'جاري إرسال الإجابات... يرجى الانتظار (قد يستغرق 30 ثانية)...';
+    finishBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+    const questions = Array.from(document.querySelectorAll('article[data-question-id]'));
+    
+    // إيجاد جميع الأزرار التي يجب الضغط عليها (لأي سؤال لم يتم حفظ إجابته بعد)
+    const submitButtons = questions.reduce((acc, article) => {
+        const typeEl = article.querySelector('.q-section-title');
+        const stateEl = article.querySelector('.recording-state');
+
+        // لا نحاول إرسال الأسئلة التي تم حفظها بالفعل
+        if (stateEl.textContent.includes('تم حفظ')) {
+            return acc;
+        }
+
+        // 1. حالة الاختيار من متعدد
+        if (typeEl.textContent.includes('اختيار من متعدد')) {
+            const submitOptionBtn = article.querySelector('.submit-option');
+             // نرسل فقط إذا كان هناك خيار مُحدد ولم يتم حفظه بعد
+            if (submitOptionBtn && submitOptionBtn.dataset.mode !== 'edit' && article.querySelector('.option-radio:checked')) {
+                acc.push(submitOptionBtn);
+            }
+            return acc;
+        }
+
+        // 2. حالة الإجابة النصية/الصوتية
+        const submitAnswerBtn = article.querySelector('.submit-answer');
+        const textarea = article.querySelector('.text-input');
+        const hasAudioUrl = submitAnswerBtn && submitAnswerBtn.dataset.audioUrl;
+        
+        // نرسل فقط إذا كان هناك محتوى جديد ولم يتم حفظه بعد
+        if (submitAnswerBtn && submitAnswerBtn.dataset.mode !== 'edit' && (textarea.value || hasAudioUrl)) {
+            acc.push(submitAnswerBtn);
+        }
+        return acc;
+    }, []);
+
+    let successfulSubmissions = 0;
+    
+    // تشغيل الأحداث على الأزرار المتبقية لإرسال البيانات
+    // تشغيل الأحداث على الأزرار المتبقية لإرسال البيانات
+    for (const btn of submitButtons) {
+        // ⭐⭐ تعديل حاسم: استخدام "الإرسال المباشر" ثم الانتظار ⭐⭐
+        // نقوم بإطلاق حدث الـ click
+        btn.click();
+        successfulSubmissions++;
+        
+        // الأهم: انتظار اكتمال عملية الإرسال (الـ fetch) التي تحدث داخل click listener
+        // بما أن عملية الإرسال (fetch) هي عملية غير متزامنة، يجب الانتظار.
+        // سنعطي مهلة كافية (500ms) لاكتمال معظم عمليات الـ API، خاصة أن الرفع الصوتي تم بالفعل.
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    finishBtn.textContent = `تم إرسال ${successfulSubmissions} إجابة متبقية. جاري إنهاء الامتحان...`;
+    
+    // إيقاف العد التنازلي
+    if (timerInterval) clearInterval(timerInterval);
+    
+    // مسح مفاتيح الجلسة والأمان
+    sessionStorage.removeItem('examValidationToken');
+    sessionStorage.removeItem('examEndTime');
+    // لا نمسح applicantId من localStorage، قد يحتاجه لاحقاً
+
+    // الانتظار ثواني للتأكد من اكتمال الإرسال ثم التوجيه
+    await new Promise(resolve => setTimeout(resolve, 3000)); 
+    
+    // التوجيه إلى الصفحة الرئيسية
+    window.location.href = '/'; 
+}
+
+// 🚦 إعداد مُستمع الحدث للزر الجديد
+document.addEventListener('DOMContentLoaded', () => {
+    const finishBtn = $('#finishExamBtn');
+    if (finishBtn) {
+        finishBtn.addEventListener('click', finishExamAndSubmitAll);
+    }
+});
+
+// ... (بقية الكود والدوال)
+ // ===================================
+ // 📤 دوال جلب البيانات
+ // ===================================
+async function loadExam() {
+  try {
+    const res = await fetch(API.exam);
+    if (!res.ok) throw new Error('Failed to load exam details');
+    const exam = await res.json();
+    
+    // ⭐️ التعديل الحاسم: تنسيق العنوان المطلوب
+    const currentYear = new Date().getFullYear();
+    const nextYear = currentYear + 1;
+    
+    const formattedTitle = `
+      امتحان المترشحين ${currentYear}/${nextYear} لتخصص (${exam.title || 'عنوان الامتحان غير متوفر'}) # ${examId}
+    `;
+    
+    examTitleEl.textContent = formattedTitle.trim(); // تطبيق العنوان الجديد
+    $('#examInfo').textContent = exam.description || 'لا يوجد وصف متاح.';
+  } catch (e) {
+    console.error('Error loading exam info:', e);
+    examTitleEl.textContent = 'فشل تحميل الامتحان';
+    $('#examInfo').textContent = 'تعذر الاتصال بالخادم.';
+  }
+}
+
+ async function loadQuestions() {
+ try {
+  // ✅ التعديل هنا: بناء رابط API بشكل صحيح مع Query Parameter
+  const questionsApiUrl = `${API.questions}?applicant_id=${applicantId}`;
+
+  const res = await fetch(questionsApiUrl);
+  if (!res.ok) throw new Error('Failed to load questions');
+  const questions = await res.json();
+  totalQuestions = questions.length;
+  renderQuestions(questions);
+  updateProgress();
+  // إزالة رسالة التحميل بعد الانتهاء
+  const msg = $('#initialLoadingMessage');
+  if(msg) msg.remove();
+ } catch(e) {
+  console.error(e);
+  questionsContainer.innerHTML = '<div class="text-center text-red-700 p-8 q-card rounded-xl">فشل تحميل الأسئلة. تأكد من أن server.js قيد التشغيل ووصلة API صحيحة.</div>';
+ }
+ }
+
+ // ===================================
+ // 🎨 دوال الرسم والعرض
+ // ===================================
+// ===================================
+// 🎨 دوال الرسم والعرض - بعد تعديل حسابansweredQuestions
+// ===================================
+function renderQuestions(list) {
+const tpl = $('#questionTemplate');
+const container = $('#questionsContainer');
+container.innerHTML = '';
+
+// 🎯 التعديل: إعادة تعيين عداد الإجابات المكتملة
+answeredQuestions = 0; 
+
+// تجميع الأسئلة حسب القسم
+const sections = list.reduce((acc, q) => {
+ const sectionId = q.section_id || 'no_section'; 
+ if (!acc[sectionId]) {
+ acc[sectionId] = { title: q.section_title || 'أسئلة عامة', questions: [] };
+ }
+ acc[sectionId].questions.push(q);
+ return acc;
+}, {});
+
+let questionIndex = 1;
+
+for (const sectionId in sections) {
+ const section = sections[sectionId];
+ 
+ // إضافة عنوان القسم الكبير
+ const sectionHeader = document.createElement('h2');
+ sectionHeader.className = 'text-3xl font-extrabold text-qatar-burgundy mt-10 mb-6 border-b-2 border-qatar-burgundy pb-2';
+ sectionHeader.textContent = `القسم: ${section.title}`;
+ container.appendChild(sectionHeader);
+
+ section.questions.forEach((q) => {
+ const node = tpl.content.cloneNode(true);
+ const article = node.querySelector('article');
+ 
+ article.dataset.questionId = q.id;
+ node.querySelector('.q-index').textContent = questionIndex++;
+ node.querySelector('.q-text').textContent = q.text;
+ 
+ // ⭐️ إضافة منطق حساب الإجابات السابقة هنا!
+ // يتم اعتبار السؤال مجابًا عليه إذا كان لديه نص أو رابط صوتي أو خيار مختار مسبقًا.
+ if (q.answer_text || q.audio_url || q.answer_option_id) {
+  answeredQuestions++;
+ }
+ 
+ // تحديد نوع السؤال
+ let typeText = '';
+ if (q.type === 'multiple_choice') typeText = 'اختيار من متعدد';
+ else if (q.type === 'text') typeText = 'إجابة نصية (متاح صوتي)';
+ else if (q.type === 'audio') typeText = 'إجابة صوتية إجبارية';
+ else typeText = 'إجابة مفتوحة';
+
+ node.querySelector('.q-section-title').textContent = `النوع: ${typeText}`;
+ 
+ 
+ const audioControls = node.querySelector('.audio-controls-group');
+ const textInput = node.querySelector('.text-input');
+ const optionsArea = node.querySelector('.options-area');
+ const answerArea = node.querySelector('.answer-area');
+ const submitAnswerBtn = node.querySelector('.submit-answer');
+
+
+ if (q.type === 'multiple_choice') {
+ optionsArea.classList.remove('hidden');
+ answerArea.classList.add('hidden'); 
+ loadOptions(q.id, optionsArea, q.answer_option_id); 
+
+ } else if (q.type === 'audio') {
+ // إخفاء مربع النص في حالة الإجابة الصوتية الإجبارية
+ textInput.classList.add('hidden'); 
+ }
+ 
+ bindRecorder(node, q);
+ container.appendChild(node);
+ });
+}
+}
+// داخل دالة loadOptions(questionId, container) { ... }
+
+// ⭐️ تم إضافة المتغير الثالث: answerIdFromInitialLoad
+async function loadOptions(questionId, container, answerIdFromInitialLoad) {
+  // ... (جلب محتوى مبدئي وعرض رسالة التحميل)
+  const initialContentHtml = container.querySelector('p').outerHTML;
+  const errorElHtml = container.querySelector('.submission-error').outerHTML;
+  
+  container.innerHTML = initialContentHtml + '<p class="text-gray-500">جاري تحميل الخيارات...</p>';
+  
+  try {
+    // 1. جلب الخيارات
+    const optionsRes = await fetch(`${API.options}?question_id=${questionId}`);
+    const options = await optionsRes.json();
+    
+    if (!optionsRes.ok) throw new Error('Failed to load options from server');
+
+    // ✅ استخدام القيمة التي تم تمريرها (بدلاً من نداء API الإضافي الذي أزلناه)
+    const previousOptionId = answerIdFromInitialLoad || null; 
+    const isAnswered = !!previousOptionId;
+    
+
+    const optionsHtml = options.map(opt => {
+      // 3. تطبيق خاصيتي checked و disabled
+      const isChecked = opt.id === previousOptionId ? 'checked' : ''; 
+      const isDisabled = isAnswered ? 'disabled' : ''; // تعطيل الإدخال
+      
+      // 4. تنسيق الـ Label بناءً على حالة الإجابة (لإظهار التعطيل)
+      const labelClasses = isAnswered 
+        ? 'opacity-50 cursor-not-allowed' 
+        : 'cursor-pointer'; 
+
+      return `
+        <div class="flex items-center option-wrapper">
+          <input type="radio" name="option_q${questionId}" id="option_${opt.id}" value="${opt.id}" class="hidden option-radio" ${isChecked} ${isDisabled} />
+          <label for="option_${opt.id}" class="option-label flex-1 p-3 rounded-lg ${labelClasses}">${opt.text}</label>
+      </div>
+      `;
+    }).join('');
+
+    // ✅ 5. إعادة بناء المحتوى مع إضافة الحاوي الذي يضبط المسافة (space-y-3)
+    container.innerHTML = `
+      ${initialContentHtml}
+      <div class="options-list-wrapper space-y-3 pt-4 border-t border-gray-200">
+        ${optionsHtml}
+      </div>
+      <button class="submit-option btn-primary p-2 px-4 rounded-lg text-sm mt-4">${isAnswered ? 'تعديل الاختيار' : 'إرسال الاختيار'}</button>
+      ${errorElHtml}
+    `;
+
+    // 6. استكمال باقي المنطق
+    const newSubmitBtn = container.querySelector('.submit-option');
+    const radioInputs = container.querySelectorAll(`input[name="option_q${questionId}"]`);
+    const stateEl = container.closest('article').querySelector('.recording-state');
+
+    if (isAnswered) {
+      newSubmitBtn.dataset.mode = 'edit';
+      stateEl.textContent = 'تم حفظ اختيارك مسبقًا ✅';
+    }
+
+    // دالة مساعدة لتعطيل/تفعيل الخيارات
+    const toggleOptionControls = (disable) => {
+      radioInputs.forEach(input => {
+        input.disabled = disable;
+        const label = input.nextElementSibling;
+        // تحديث كلاسات الـ Label بناءً على حالة التعطيل
+        if (disable) {
+          label.classList.add('opacity-50', 'cursor-not-allowed');
+          label.classList.remove('cursor-pointer');
+        } else {
+          label.classList.remove('opacity-50', 'cursor-not-allowed');
+          label.classList.add('cursor-pointer');
+        }
+      });
+      if (disable) {
+        newSubmitBtn.textContent = 'تعديل الاختيار';
+        newSubmitBtn.dataset.mode = 'edit';
+      } else {
+        newSubmitBtn.textContent = 'إرسال الاختيار';
+        delete newSubmitBtn.dataset.mode;
+      }
+    };
+
+    newSubmitBtn.addEventListener('click', async (e) => {
+      // 1. منطق "تعديل الاختيار"
+      if (newSubmitBtn.dataset.mode === 'edit') {
+        toggleOptionControls(false); // تمكين الإدخال
+        stateEl.textContent = 'لم يتم إرسال الإجابة بعد التعديل.';
+        return;
+      }
+
+      // تحقق من نهاية الوقت
+      if (examEndTime && new Date().getTime() > examEndTime.getTime()) return;
+
+      const selectedOption = container.querySelector(`input[name="option_q${questionId}"]:checked`);
+      
+      if (!selectedOption) {
+        alert('الرجاء اختيار خيار واحد.');
+        return;
+      }
+      
+      // ... (بقية منطق الإرسال لـ API.answers)
+      const currentApplicantId = applicantId; 
+      stateEl.textContent = 'جاري إرسال الاختيار...';
+
+      const payload = {
+        exam_id: examId,
+        question_id: questionId,
+        applicant_id: currentApplicantId,
+        answer_option_id: parseInt(selectedOption.value)
+      };
+
+      const postRes = await fetch(API.answers, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(payload) 
+      });
+
+      if (postRes.ok) {
+        stateEl.textContent = 'تم إرسال الاختيار وحفظه ✅';
+        // بعد الإرسال بنجاح: نعطل ونغير الزر
+        toggleOptionControls(true);
+      } else {
+        stateEl.textContent = `فشل الإرسال ❌. خطأ: ${postRes.statusText}`;
+      }
+    });
+
+  } catch (e) {
+    console.error('Error loading options:', e);
+    container.innerHTML = initialContentHtml + '<p class="text-red-500">فشل جلب خيارات السؤال. تأكد من تشغيل server.js والبيانات.</p>';
+  }
+} // ===================================
+ // 🎙️ دوال التسجيل الصوتي (Web Audio API)
+ // ===================================
+ 
+ let mediaRecorder = null;
+ let audioChunks = [];
+ let stream = null;
+ let audioContext = null;
+ let analyser = null;
+ let bufferLength = 0;
+ 
+ // دالة لرسم الموجات الصوتية
+ function drawWave(canvas, isRecording, data) {
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+  
+  ctx.clearRect(0, 0, width, height);
+  
+  if (isRecording && data && analyser) {
+   analyser.getByteTimeDomainData(data);
+   
+   ctx.lineWidth = 2;
+   ctx.strokeStyle = '#800020'; // العنابي
+   ctx.beginPath();
+   
+   const sliceWidth = width * 1.0 / bufferLength;
+   let x = 0;
+   
+   for (let i = 0; i < bufferLength; i++) {
+    const v = data[i] / 128.0;
+    const y = v * height / 2;
+    
+    if (i === 0) {
+     ctx.moveTo(x, y);
+    } else {
+     ctx.lineTo(x, y);
+    }
+    
+    x += sliceWidth;
+   }
+   
+   ctx.lineTo(width, height / 2);
+   ctx.stroke();
+   
+   requestAnimationFrame(() => drawWave(canvas, isRecording, data));
+  }
+ }
+ 
+// 🎙️ دوال التسجيل الصوتي (Web Audio API)
+// ... (المتغيرات العامة مثل mediaRecorder, audioChunks, stream, audioContext, analyser, bufferLength)
+// ... (دالة drawWave)
+
+
+// 🎙️ دوال التسجيل الصوتي (Web Audio API)
+// ... (المتغيرات والدوال المساعدة)
+
+function bindRecorder(node, q) {
+const recBtn = node.querySelector('.rec-btn');
+const playerWrapper = node.querySelector('.audio-player-wrapper');
+const audioPlayer = node.querySelector('.audio-player');
+const clearAudioBtn = node.querySelector('.clear-audio');
+const stateEl = node.querySelector('.recording-state');
+const textarea = node.querySelector('.text-input');
+const submitBtn = node.querySelector('.submit-answer');
+const timerEl = node.querySelector('.recording-timer');
+const canvas = node.querySelector('.wave-canvas');
+
+let timer = 0;
+let timerIntervalId;
+let drawData;
+
+// تحديث مؤقت التسجيل
+const updateTimer = () => {
+ timer++;
+ const minutes = String(Math.floor(timer / 60)).padStart(2, '0');
+ const seconds = String(timer % 60).padStart(2, '0');
+ timerEl.textContent = `${minutes}:${seconds}`;
+}
+
+recBtn.addEventListener('click', async () => {
+   // تحقق من نهاية الوقت
+   if (examEndTime && new Date().getTime() > examEndTime.getTime()) return;
+
+ if (recBtn.dataset.state === 'idle' || recBtn.dataset.state === 'stopped' || recBtn.dataset.state === 'recorded') {
+  // إذا كانت الحالة recorded، نعيدها إلى idle/stopped لبدء تسجيل جديد
+  if (recBtn.dataset.state === 'recorded') {
+   recBtn.dataset.state = 'idle';
+   // مسح بيانات التسجيل القديمة قبل بدء تسجيل جديد
+   submitBtn.dataset.audioUrl = ''; 
+   audioPlayer.src = '';
+   playerWrapper.classList.add('hidden');
+  }
+
+  // بدء التسجيل
+  try {
+  // طلب صلاحية الميكروفون
+  stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+// 💡 اقتراح لتحسين حجم الملف: استخدام ترميز Opus مع WebM
+// هذا يوفر حجم ملف أصغر بكثير مع الحفاظ على جودة عالية
+// 💡 التعديل الأهم: تحديد معدل البت لتقليل الحجم
+// 12000 bit/s = 12 kbps. هذا يكفي لجودة صوت بشري واضح جدًا ويوفر حجم ملف صغير.
+const TARGET_BITRATE = 12000; // 12 kbps
+
+try {
+    mediaRecorder = new MediaRecorder(stream, { 
+        mimeType: 'audio/webm;codecs=opus',
+        audioBitsPerSecond: TARGET_BITRATE 
+    });
+} catch (e) {
+    // كخيار احتياطي (إذا فشل Opus، سنعود لـ webm الافتراضي)
+    console.warn("Opus codec not supported, falling back to default webm.");
+    try {
+        mediaRecorder = new MediaRecorder(stream, { 
+            mimeType: 'audio/webm',
+            audioBitsPerSecond: TARGET_BITRATE
+        });
+    } catch (e2) {
+        // الخيار الأخير (قد يكون ملفًا ضخمًا)
+        mediaRecorder = new MediaRecorder(stream);
+    }
+}  audioChunks = [];
+  
+  // إعداد تحليل الصوت للرسم
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioContext.createAnalyser();
+  const source = audioContext.createMediaStreamSource(stream);
+  source.connect(analyser);
+  analyser.fftSize = 2048;
+  bufferLength = analyser.frequencyBinCount;
+  drawData = new Uint8Array(bufferLength);
+  
+  mediaRecorder.ondataavailable = event => {
+   audioChunks.push(event.data);
+  };
+  
+  mediaRecorder.onstop = async () => {
+  const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' }); 
+   
+   // 1. عرض المشغل
+   const audioUrl = URL.createObjectURL(audioBlob);
+   audioPlayer.src = audioUrl;
+   playerWrapper.classList.remove('hidden');
+   recBtn.dataset.state = 'recorded';
+   recBtn.textContent = '▶️'; // تغيير الزر للتشغيل
+
+   // 2. إرسال ملف الصوت إلى الخادم
+   stateEl.textContent = 'جاري رفع الملف الصوتي...';
+   const formData = new FormData();
+   formData.append('audio', audioBlob, `audio_q${q.id}_a${applicantId}.webm`);
+   formData.append('applicant_id', applicantId);
+   formData.append('question_id', q.id);
+   
+   const uploadRes = await fetch(API.uploadAudio, {
+   method: 'POST',
+   body: formData
+   });
+   
+   if (uploadRes.ok) {
+   const uploadResult = await uploadRes.json();
+   submitBtn.dataset.audioUrl = uploadResult.audioUrl; // حفظ المسار
+   stateEl.textContent = 'تم رفع الملف بنجاح. اضغط إرسال لحفظ الإجابة.';
+   } else {
+   stateEl.textContent = '❌ فشل رفع الملف الصوتي. حاول مرة أخرى.';
+   }
+   
+   // إيقاف الميكروفون
+   stream.getTracks().forEach(track => track.stop());
+  };
+  
+  mediaRecorder.start();
+  
+  // تحديث الحالة وبدء الرسم والعد
+  recBtn.dataset.state = 'recording';
+  recBtn.textContent = '🛑';
+  playerWrapper.classList.add('hidden');
+  // submitBtn.dataset.audioUrl = ''; // تم مسحها في الأعلى
+  stateEl.textContent = 'جاري التسجيل...';
+  timer = 0;
+  timerIntervalId = setInterval(updateTimer, 1000);
+  drawWave(canvas, true, drawData);
+  
+  } catch (err) {
+  console.error('Error accessing microphone:', err);
+  stateEl.textContent = '❌ فشل الوصول للميكروفون. تأكد من السماح له.';
+  recBtn.dataset.state = 'idle';
+  recBtn.textContent = '🎙️';
+  }
+ } else if (recBtn.dataset.state === 'recording') {
+  // إيقاف التسجيل
+  mediaRecorder.stop();
+  clearInterval(timerIntervalId);
+  recBtn.dataset.state = 'stopped';
+  stateEl.textContent = 'تم إنهاء التسجيل. جاري الرفع...';
+  drawWave(canvas, false); // إيقاف الرسم
+ }
+});
+
+// عند انتهاء التشغيل، إرجاع الزر لحالة التشغيل
+audioPlayer.addEventListener('ended', () => {
+ if (recBtn.dataset.state === 'recorded') {
+  recBtn.textContent = '▶️';
+  stateEl.textContent = 'تم انتهاء التشغيل.';
+ }
+});
+
+// حذف التسجيل
+clearAudioBtn.addEventListener('click', () => {
+ audioPlayer.src = '';
+ playerWrapper.classList.add('hidden');
+ recBtn.dataset.state = 'idle';
+ recBtn.textContent = '🎙️';
+ submitBtn.dataset.audioUrl = '';
+ timerEl.textContent = '00:00';
+ stateEl.textContent = 'لم يتم الإرسال';
+ // عند الحذف يجب مسح الإجابات المحفوظة محليا
+ q.audio_url = null; 
+});
+
+// 💾 إرسال أو تعديل الإجابة النصية/الصوتية
+submitBtn.addEventListener('click', async (e) => {
+ // إذا كان الزر في وضع تعديل
+ if (submitBtn.dataset.mode === 'edit') {
+  textarea.disabled = false;
+  recBtn.disabled = false;
+  recBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+  textarea.classList.remove('opacity-50');
+  submitBtn.textContent = 'إرسال الإجابة';
+  delete submitBtn.dataset.mode;
+  // مسح الحالة الداخلية لضمان إرسال البيانات الجديدة بالكامل
+  q.answer_text = null;
+  q.audio_url = null;
+  return;
+ }
+
+ // تحقق من انتهاء الوقت
+ if (examEndTime && new Date().getTime() > examEndTime.getTime()) return;
+
+ const currentApplicantId = applicantId;
+ const payload = {
+  exam_id: examId,
+  question_id: q.id,
+  applicant_id: currentApplicantId,
+  answer_text: textarea.value || null,
+  audio_url: submitBtn.dataset.audioUrl || null
+ };
+
+ if (!payload.answer_text && !payload.audio_url) {
+  stateEl.textContent = 'الرجاء إدخال إجابة نصية أو تسجيل صوتي أولاً.';
+  return;
+ }
+
+ stateEl.textContent = 'جاري إرسال الإجابة...';
+ const res = await fetch(API.answers, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+ });
+
+ if (res.ok) {
+  stateEl.textContent = 'تم إرسال الإجابة وحفظها ✅';
+  markAsAnswered();
+
+  // تحديث بيانات السؤال داخلياً (لتفادي طلب API آخر)
+  q.answer_text = payload.answer_text;
+  q.audio_url = payload.audio_url;
+  q.answer_option_id = null; // للتأكد من مسح خيار سابق إن وجد
+
+  // تعطيل الإدخال بعد الإرسال
+  textarea.disabled = true;
+  recBtn.disabled = true;
+  recBtn.classList.add('opacity-50', 'cursor-not-allowed');
+  textarea.classList.add('opacity-50');
+  submitBtn.textContent = 'تعديل الإجابة';
+  submitBtn.dataset.mode = 'edit';
+ } else {
+  stateEl.textContent = `فشل الإرسال ❌. خطأ: ${res.statusText}`;
+ }
+});
+
+// 🧠 وظيفة تهيئة الحالة: تعتمد الآن على البيانات التي تم جلبها مع السؤال (q)
+function initializePreviousAnswerState() {
+ // إذا كانت الإجابة النصية أو رابط الصوت موجودين في بيانات السؤال (تم جلبها من DB)
+ if (q.answer_text || q.audio_url) {
+   if (q.answer_text) textarea.value = q.answer_text;
+   
+   if (q.audio_url) {
+    submitBtn.dataset.audioUrl = q.audio_url;
+    playerWrapper.classList.remove('hidden');
+    audioPlayer.src = q.audio_url; // تحميل الصوت للمشغل
+    recBtn.dataset.state = 'recorded'; // تغيير حالة الزر إلى "تم التسجيل"
+    recBtn.textContent = '▶️';
+   }
+
+   // تطبيق حالة "تم الإرسال"
+   textarea.disabled = true;
+   recBtn.disabled = true;
+   recBtn.classList.add('opacity-50', 'cursor-not-allowed');
+   textarea.classList.add('opacity-50');
+   submitBtn.textContent = 'تعديل الإجابة';
+   submitBtn.dataset.mode = 'edit';
+   stateEl.textContent = 'تم حفظ إجابتك مسبقًا ✅';
+ }
+}
+// 🚀 بدء التهيئة
+initializePreviousAnswerState();
+}
+
+ // ===================================
+ // 🚀 بدء التشغيل
+ // ===================================
+  // يتم بدء التشغيل فقط إذا مر التحقق الأمني
+  if (examId && validationToken && applicantId && examEndTimeISO) {
+   loadExam();
+   loadQuestions();
+    startTimer(); 
+  }
+</script>
+</body>
+</html>
