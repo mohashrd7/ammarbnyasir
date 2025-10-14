@@ -161,7 +161,7 @@ app.get("/exams/applicant-exam", (req, res) => {
 });
 
 // صفحة التسجيل 
-app.get("/exams/register", (req, res) => {
+app.get("/exams/applicant-register", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "exams", "applicant-register.html"));
 });
 
