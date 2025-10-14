@@ -636,6 +636,27 @@ app.post("/api/upload/audio", upload.single("audio"), async (req, res) => {
   }
 });
 
+app.use((req, res, next) => {
+    // إرسال كود الحالة 404
+    res.status(404);
+
+    // التحقق من نوع الطلب
+    if (req.accepts('html')) {
+        // إذا كان الطلب لصفحة HTML، أرسل ملف تصميم 404.html
+        res.sendFile(path.join(__dirname, 'public', '404.html'));
+        return;
+    }
+
+    // إذا كان الطلب لـ API أو أي شيء آخر، أرسل JSON
+    if (req.accepts('json')) {
+        res.json({ error: 'Not Found', message: 'The requested resource was not found on this server.' });
+        return;
+    }
+
+    // للمطالبات الأخرى، أرسل نصًا عاديًا
+    res.send('404 Not Found');
+});
+
 // =======================
 // 🚀 تشغيل السيرفر
 // =======================
