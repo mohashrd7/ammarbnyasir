@@ -151,7 +151,7 @@ app.get("/exams/admin/results", basicAuth, (req, res) => {
 // 🔓 مسارات المستخدم العادي (الغير محمية)
 
 // صفحة الأسئلة
-app.get("/exams/exam/:id/questions", (req, res) => {
+app.get("/exam/:id/questions", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "exams", "questions.html"));
 });
 
