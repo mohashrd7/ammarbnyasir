@@ -141,7 +141,7 @@ app.get("/exams/add-section", basicAuth, (req, res) => {
 });
 
 app.get("/exams/add-questions", basicAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "exams", "add.questions.html"));
+  res.sendFile(path.join(__dirname, "public", "exams", "add-question.html"));
 });
 
 app.get("/exams/admin/results", basicAuth, (req, res) => {
