@@ -176,8 +176,7 @@ app.post("/api/validate_exam_token", async (req, res) => {
  try {
   // 1. جلب معلومات الطالب (تم إضافة finished)
   const applicantResult = await pool.query(
-   "SELECT id, specialization, finished FROM applicants WHERE id=$1", // ⭐️ التعديل هنا: جلب عمود finished
-   [token]
+   "SELECT id, specialization, finished, invited FROM applicants WHERE id=$1", // ✅ تم إضافة invited   [token]
   );
 
   if (applicantResult.rows.length === 0) {

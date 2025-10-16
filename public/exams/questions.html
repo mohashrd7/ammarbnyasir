@@ -264,7 +264,7 @@
  let answeredQuestions = 0;
  let examEndTime = null; 
  let timerInterval;
- 
+ let answeredQuestionIds = new Set();
  // ===================================
  // 🛡️ التحقق الأمني من الجلسة (مفتاح الأمان)
  // ===================================
@@ -349,10 +349,14 @@
  }
  
   // لزيادة عداد الإجابات وتحديث الشريط
- function markAsAnswered() {
-  answeredQuestions = Math.min(answeredQuestions + 1, totalQuestions); // للتأكد من عدم تجاوز العدد الإجمالي
+ function markAsAnswered(questionId) {
+  if (answeredQuestionIds.has(questionId)) {
+   return; // تم الإجابة عليه مسبقًا، لا تزد العدد
+  }
+  answeredQuestionIds.add(questionId);
+  answeredQuestions = answeredQuestionIds.size; // تحديث العدد بالاعتماد على حجم المجموعة
   updateProgress();
- }
+}
 
  // ... (قبل الدالة loadExam)
 
@@ -518,7 +522,7 @@ container.innerHTML = '';
 
 // 🎯 التعديل: إعادة تعيين عداد الإجابات المكتملة
 answeredQuestions = 0; 
-
+answeredQuestionIds.clear(); // 🆕 مسح المجموعة عند إعادة الرسم
 // تجميع الأسئلة حسب القسم
 const sections = list.reduce((acc, q) => {
  const sectionId = q.section_id || 'no_section'; 
@@ -551,7 +555,7 @@ for (const sectionId in sections) {
  // ⭐️ إضافة منطق حساب الإجابات السابقة هنا!
  // يتم اعتبار السؤال مجابًا عليه إذا كان لديه نص أو رابط صوتي أو خيار مختار مسبقًا.
  if (q.answer_text || q.audio_url || q.answer_option_id) {
-  answeredQuestions++;
+  answeredQuestionIds.add(q.id);
  }
  
  // تحديد نوع السؤال
@@ -585,6 +589,7 @@ for (const sectionId in sections) {
  container.appendChild(node);
  });
 }
+answeredQuestions = answeredQuestionIds.size;
 }
 // داخل دالة loadOptions(questionId, container) { ... }
 
@@ -706,6 +711,7 @@ async function loadOptions(questionId, container, answerIdFromInitialLoad) {
 
       if (postRes.ok) {
         stateEl.textContent = 'تم إرسال الاختيار وحفظه ✅';
+        markAsAnswered(questionId);
         // بعد الإرسال بنجاح: نعطل ونغير الزر
         toggleOptionControls(true);
       } else {
@@ -978,7 +984,7 @@ submitBtn.addEventListener('click', async (e) => {
 
  if (res.ok) {
   stateEl.textContent = 'تم إرسال الإجابة وحفظها ✅';
-  markAsAnswered();
+  markAsAnswered(q.id);
 
   // تحديث بيانات السؤال داخلياً (لتفادي طلب API آخر)
   q.answer_text = payload.answer_text;
