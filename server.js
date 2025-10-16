@@ -173,12 +173,12 @@ app.post("/api/validate_exam_token", async (req, res) => {
   return res.status(400).json({ success: false, error: "رمز الدخول مطلوب" });
  }
 
- try {
-  // 1. جلب معلومات الطالب (تم إضافة finished)
-  const applicantResult = await pool.query(
-   "SELECT id, specialization, finished FROM applicants WHERE id=$1", // ✅ تم إضافة invited   [token]
-  );
-
+try {
+  // 1. جلب معلومات الطالب (تم إضافة finished)
+  const applicantResult = await pool.query(
+   "SELECT id, specialization, finished, invited FROM applicants WHERE id=$1",
+   [token] // ✅ هذا هو السطر الذي أُضيف أو نُقل خارج التعليق
+  );
   if (applicantResult.rows.length === 0) {
    return res.json({ success: false, error: "رمز دخول غير صحيح أو غير مسجل." });
   }
