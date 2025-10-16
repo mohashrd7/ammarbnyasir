@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>خطأ - غير مدعو للامتحان</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* الألوان الأساسية: العنابي والذهبي */
+        :root {
+            --qatar-burgundy: #800020; /* عنابي أساسي */
+            --qatar-gold: #D4AF37; /* ذهبي للإبراز */
+            --bg-light: #FFFFFF; /* خلفية بيضاء */
+            --text-dark: #1f2937; /* لون النص الداكن */
+        }
+
+        body {
+            font-family: 'Cairo', ui-sans-serif, system-ui;
+            background-color: #F8F9FA;
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .q-card {
+            background-color: var(--bg-light);
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); 
+            border-radius: 20px;
+            max-width: 600px;
+            padding: 3rem;
+            text-align: center;
+            width: 90%;
+            margin: 2rem;
+            border-top: 5px solid var(--qatar-burgundy); /* شريط عنابي للتنبيه */
+        }
+
+        .icon-error {
+            /* أيقونة الخطأ باللون العنابي */
+            color: var(--qatar-burgundy); 
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* زر العودة للصفحة الرئيسية (Primary Button) */
+        .btn-primary {
+            background-color: var(--qatar-burgundy);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #6a0018; /* لون أغمق للعنابي */
+        }
+        
+        /* زر التواصل (Secondary Button - بلون مغاير لتفريقه) */
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--qatar-burgundy);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: background-color 0.3s, color 0.3s;
+            display: inline-block;
+            text-decoration: none;
+            border: 2px solid var(--qatar-burgundy);
+            margin-right: 1rem; /* مسافة بين الأزرار */
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--qatar-burgundy);
+            color: var(--bg-light);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="q-card">
+        <div class="icon-error mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+        </div>
+
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-4">عفواً، لا يمكن الوصول للصفحة</h1>
+        
+        <p class="text-xl font-semibold text-gray-600 mb-6">
+            يبدو أن البريد الإلكتروني الذي سجلت به **غير مُدرج حالياً** في قائمة المتقدمين المدعوين للامتحان.
+        </p>
+
+        <p class="text-lg text-gray-700 mb-8">
+            إذا كنت تعتقد أن هذا خطأ، يرجى التواصل مع الإدارة فوراً لتأكيد حالة الدعوة والبريد الإلكتروني الخاص بك.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 sm:space-x-reverse">
+            <a href="mailto:support@ammarbnyasir.com" class="btn-secondary">
+                تواصل مع الدعم الفني
+            </a>
+            
+            <a href="/" class="btn-primary">
+                العودة للصفحة الرئيسية
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -360,78 +360,96 @@
 // 🏁 دالة إنهاء الامتحان والإرسال الجماعي
 // ===================================
 async function finishExamAndSubmitAll() {
-    const finishBtn = $('#finishExamBtn');
-    finishBtn.disabled = true;
-    finishBtn.textContent = 'جاري إرسال الإجابات... يرجى الانتظار (قد يستغرق 30 ثانية)...';
-    finishBtn.classList.add('opacity-50', 'cursor-not-allowed');
-
-    const questions = Array.from(document.querySelectorAll('article[data-question-id]'));
+    // افترض أن applicantId مُعرّف ومتاح عالميًا أو من localStorage
+    const applicantId = localStorage.getItem('applicantId'); 
     
-    // إيجاد جميع الأزرار التي يجب الضغط عليها (لأي سؤال لم يتم حفظ إجابته بعد)
-    const submitButtons = questions.reduce((acc, article) => {
-        const typeEl = article.querySelector('.q-section-title');
-        const stateEl = article.querySelector('.recording-state');
+    const finishBtn = $('#finishExamBtn');
+    finishBtn.disabled = true;
+    finishBtn.textContent = 'جاري إرسال الإجابات... يرجى الانتظار (قد يستغرق 30 ثانية)...';
+    finishBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-        // لا نحاول إرسال الأسئلة التي تم حفظها بالفعل
-        if (stateEl.textContent.includes('تم حفظ')) {
-            return acc;
-        }
+    const questions = Array.from(document.querySelectorAll('article[data-question-id]'));
+    
+    // إيجاد جميع الأزرار التي يجب الضغط عليها (لأي سؤال لم يتم حفظ إجابته بعد)
+    const submitButtons = questions.reduce((acc, article) => {
+        const typeEl = article.querySelector('.q-section-title');
+        const stateEl = article.querySelector('.recording-state');
 
-        // 1. حالة الاختيار من متعدد
-        if (typeEl.textContent.includes('اختيار من متعدد')) {
-            const submitOptionBtn = article.querySelector('.submit-option');
-             // نرسل فقط إذا كان هناك خيار مُحدد ولم يتم حفظه بعد
-            if (submitOptionBtn && submitOptionBtn.dataset.mode !== 'edit' && article.querySelector('.option-radio:checked')) {
-                acc.push(submitOptionBtn);
-            }
-            return acc;
-        }
+        // لا نحاول إرسال الأسئلة التي تم حفظها بالفعل
+        if (stateEl && stateEl.textContent.includes('تم حفظ')) {
+            return acc;
+        }
 
-        // 2. حالة الإجابة النصية/الصوتية
-        const submitAnswerBtn = article.querySelector('.submit-answer');
-        const textarea = article.querySelector('.text-input');
-        const hasAudioUrl = submitAnswerBtn && submitAnswerBtn.dataset.audioUrl;
-        
-        // نرسل فقط إذا كان هناك محتوى جديد ولم يتم حفظه بعد
-        if (submitAnswerBtn && submitAnswerBtn.dataset.mode !== 'edit' && (textarea.value || hasAudioUrl)) {
-            acc.push(submitAnswerBtn);
-        }
-        return acc;
-    }, []);
+        // 1. حالة الاختيار من متعدد
+        if (typeEl.textContent.includes('اختيار من متعدد')) {
+            const submitOptionBtn = article.querySelector('.submit-option');
+             // نرسل فقط إذا كان هناك خيار مُحدد ولم يتم حفظه بعد
+            if (submitOptionBtn && submitOptionBtn.dataset.mode !== 'edit' && article.querySelector('.option-radio:checked')) {
+                acc.push(submitOptionBtn);
+            }
+            return acc;
+        }
 
-    let successfulSubmissions = 0;
-    
-    // تشغيل الأحداث على الأزرار المتبقية لإرسال البيانات
-    // تشغيل الأحداث على الأزرار المتبقية لإرسال البيانات
+        // 2. حالة الإجابة النصية/الصوتية
+        const submitAnswerBtn = article.querySelector('.submit-answer');
+        const textarea = article.querySelector('.text-input');
+        const hasAudioUrl = submitAnswerBtn && submitAnswerBtn.dataset.audioUrl;
+        
+        // نرسل فقط إذا كان هناك محتوى جديد ولم يتم حفظه بعد
+        if (submitAnswerBtn && submitAnswerBtn.dataset.mode !== 'edit' && (textarea?.value || hasAudioUrl)) {
+            acc.push(submitAnswerBtn);
+        }
+        return acc;
+    }, []);
+
+    let successfulSubmissions = 0;
+    
+    // تشغيل الأحداث على الأزرار المتبقية لإرسال البيانات
     for (const btn of submitButtons) {
-        // ⭐⭐ تعديل حاسم: استخدام "الإرسال المباشر" ثم الانتظار ⭐⭐
-        // نقوم بإطلاق حدث الـ click
         btn.click();
         successfulSubmissions++;
-        
-        // الأهم: انتظار اكتمال عملية الإرسال (الـ fetch) التي تحدث داخل click listener
-        // بما أن عملية الإرسال (fetch) هي عملية غير متزامنة، يجب الانتظار.
-        // سنعطي مهلة كافية (500ms) لاكتمال معظم عمليات الـ API، خاصة أن الرفع الصوتي تم بالفعل.
         await new Promise(resolve => setTimeout(resolve, 500));
     }
+    
+    finishBtn.textContent = `تم إرسال ${successfulSubmissions} إجابة متبقية. جاري إنهاء الامتحان...`;
     
-    finishBtn.textContent = `تم إرسال ${successfulSubmissions} إجابة متبقية. جاري إنهاء الامتحان...`;
+    // ======================================================
+    // ⭐️⭐️ الإضافة الحاسمة: تحديث حالة finished للمتقدم في DB ⭐️⭐️
+    // ======================================================
+    if (applicantId) {
+        try {
+            const updateRes = await fetch(`/api/applicant/${applicantId}/finish`, {
+                method: 'PATCH', // استخدام PATCH لتحديث جزء من السجل
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ finished: true })
+            });
+            
+            if (!updateRes.ok) {
+                console.warn('Failed to mark applicant as finished on server:', await updateRes.text());
+            } else {
+                 console.log('Applicant status successfully marked as finished.');
+            }
+        } catch (e) {
+            console.error('Error during final applicant status update:', e);
+        }
+    } else {
+         console.error('Applicant ID not found. Cannot mark as finished.');
+    }
+    // ======================================================
     
-    // إيقاف العد التنازلي
-    if (timerInterval) clearInterval(timerInterval);
-    
-    // مسح مفاتيح الجلسة والأمان
-    sessionStorage.removeItem('examValidationToken');
-    sessionStorage.removeItem('examEndTime');
-    // لا نمسح applicantId من localStorage، قد يحتاجه لاحقاً
+    // إيقاف العد التنازلي
+    if (timerInterval) clearInterval(timerInterval);
+    
+    // مسح مفاتيح الجلسة والأمان
+    sessionStorage.removeItem('examValidationToken');
+    sessionStorage.removeItem('examEndTime');
 
-    // الانتظار ثواني للتأكد من اكتمال الإرسال ثم التوجيه
-    await new Promise(resolve => setTimeout(resolve, 3000)); 
-    
-    // التوجيه إلى الصفحة الرئيسية
-    window.location.href = '/'; 
+    // الانتظار ثواني للتأكد من اكتمال الإرسال ثم التوجيه
+    await new Promise(resolve => setTimeout(resolve, 3000)); 
+    
+    // التوجيه إلى صفحة الانتهاء المخصصة
+    window.location.href = '/finished';
 }
-
 // 🚦 إعداد مُستمع الحدث للزر الجديد
 document.addEventListener('DOMContentLoaded', () => {
     const finishBtn = $('#finishExamBtn');

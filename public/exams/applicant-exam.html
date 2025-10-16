@@ -210,6 +210,18 @@
 
   let messageHtml = `<p>${data.error || "حدث خطأ غير معروف."}</p>`;
 
+    if (data.error === "غير مدعو للامتحان.") { 
+    // التوجيه إلى صفحة عدم الدعوة
+    window.location.href = '/exams/not-invited'; 
+    return;
+  }
+
+  if (data.error === "لقد أكملت الامتحان مسبقًا.") { 
+    // إذا أرسل الخادم هذه الرسالة، قم بالتوجيه مباشرة
+    window.location.href = '/exams/finished'; 
+    return;
+  }
+
   if (data.exam && data.exam.startDateStr) {
    messageHtml += `
    <p class="mt-4">وقت بدء الامتحان المخطط له:</p>

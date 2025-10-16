@@ -167,77 +167,93 @@ app.get("/exams/applicant-register", (req, res) => {
 
 // التحقق من رمز الدخول وتحديد الامتحان
 app.post("/api/validate_exam_token", async (req, res) => {
-  const { token } = req.body;
+ const { token } = req.body;
 
-  if (!token) {
-    return res.status(400).json({ success: false, error: "رمز الدخول مطلوب" });
+ if (!token) {
+  return res.status(400).json({ success: false, error: "رمز الدخول مطلوب" });
+ }
+
+ try {
+  // 1. جلب معلومات الطالب (تم إضافة finished)
+  const applicantResult = await pool.query(
+   "SELECT id, specialization, finished FROM applicants WHERE id=$1", // ⭐️ التعديل هنا: جلب عمود finished
+   [token]
+  );
+
+  if (applicantResult.rows.length === 0) {
+   return res.json({ success: false, error: "رمز دخول غير صحيح أو غير مسجل." });
   }
 
-  try {
-    // جلب معلومات الطالب
-    const applicantResult = await pool.query(
-      "SELECT id, specialization FROM applicants WHERE id=$1",
-      [token]
-    );
+  const applicant = applicantResult.rows[0];
 
-    if (applicantResult.rows.length === 0) {
-      return res.json({ success: false, error: "رمز دخول غير صحيح أو غير مسجل." });
+  if (applicant.invited === false) {
+        return res.json({ 
+            success: false, 
+            // رسالة خطأ جديدة خاصة بعدم الدعوة
+            error: "غير مدعو للامتحان." 
+        });
     }
 
-    const applicant = applicantResult.rows[0];
-
-    // جلب الامتحان المطابق للتخصص
-    const examResult = await pool.query(
-      "SELECT id, title, start_time_qat, end_time_qat FROM exams WHERE title=$1 ORDER BY id DESC LIMIT 1",
-      [applicant.specialization]
-    );
-
-    if (examResult.rows.length === 0) {
-      return res.json({ success: false, error: "لم يتم العثور على امتحان لهذا التخصص" });
+    // ⭐️ 2. التحقق من حالة الإنهاء (قبل التحقق من التوقيت)
+    if (applicant.finished === true) {
+        return res.json({ 
+            success: false, 
+            // رسالة الخطأ هذه سيتم استخدامها في applicant-exam.html لإجراء التوجيه
+            error: "لقد أكملت الامتحان مسبقًا." 
+        });
     }
 
-    const exam = examResult.rows[0];
+  // جلب الامتحان المطابق للتخصص
+  const examResult = await pool.query(
+   "SELECT id, title, start_time_qat, end_time_qat FROM exams WHERE title=$1 ORDER BY id DESC LIMIT 1",
+   [applicant.specialization]
+  );
 
-    // التحقق من التوقيت على السيرفر
-    const now = new Date();
-    const start = new Date(exam.start_time_qat);
-    const end = new Date(exam.end_time_qat);
-
-    const optionsDate = { timeZone: "Asia/Qatar", day: '2-digit', month: '2-digit', year: 'numeric' };
-    const optionsTime = { timeZone: "Asia/Qatar", hour: '2-digit', minute: '2-digit' };
-
-    // تمرير الأوقات المنسقة بشكل موثوق
-    exam.startDateStr = start.toLocaleDateString("en-GB", optionsDate);
-    exam.startTimeStr = start.toLocaleTimeString("en-GB", optionsTime);
-    exam.endDateStr = end.toLocaleDateString("en-GB", optionsDate);
-    exam.endTimeStr = end.toLocaleTimeString("en-GB", optionsTime);
-
-    // إذا كان الوقت خارج الإطار الزمني المسموح
-    if (now < start || now > end) {
-      return res.json({
-        success: false,
-        error: "الامتحان غير متاح حالياً.",
-        exam
-      });
-    }
-
-    // كل شيء صحيح
-    res.json({
-      success: true,
-      examId: exam.id,
-      exam,
-      // ✨ الحقول الضرورية لتخزينها في الواجهة الأمامية ✨
-      validationToken: token, // سيتم تخزينه في sessionStorage
-      applicantId: applicant.id, // سيتم تخزينه في localStorage
-      examEndTime: end.toISOString() // سيتم تخزينه في sessionStorage
-    });
-
-  } catch (err) {
-    console.error("POST /api/validate_exam_token error:", err);
-    res.status(500).json({ success: false, error: "Database or server error" });
+  if (examResult.rows.length === 0) {
+   return res.json({ success: false, error: "لم يتم العثور على امتحان لهذا التخصص" });
   }
+
+  const exam = examResult.rows[0];
+
+  // التحقق من التوقيت على السيرفر
+  const now = new Date();
+  const start = new Date(exam.start_time_qat);
+  const end = new Date(exam.end_time_qat);
+
+  const optionsDate = { timeZone: "Asia/Qatar", day: '2-digit', month: '2-digit', year: 'numeric' };
+  const optionsTime = { timeZone: "Asia/Qatar", hour: '2-digit', minute: '2-digit' };
+
+  // تمرير الأوقات المنسقة بشكل موثوق
+  exam.startDateStr = start.toLocaleDateString("en-GB", optionsDate);
+  exam.startTimeStr = start.toLocaleTimeString("en-GB", optionsTime);
+  exam.endDateStr = end.toLocaleDateString("en-GB", optionsDate);
+  exam.endTimeStr = end.toLocaleTimeString("en-GB", optionsTime);
+
+  // إذا كان الوقت خارج الإطار الزمني المسموح (يتم التحقق منه فقط إذا لم يكن قد أنهى مسبقاً)
+  if (now < start || now > end) {
+   return res.json({
+    success: false,
+    error: "الامتحان غير متاح حالياً.",
+    exam
+   });
+  }
+
+  // كل شيء صحيح (غير مكمل، والتوقيت مسموح)
+  res.json({
+   success: true,
+   examId: exam.id,
+   exam,
+   // ✨ الحقول الضرورية لتخزينها في الواجهة الأمامية ✨
+   validationToken: token, // سيتم تخزينه في sessionStorage
+   applicantId: applicant.id, // سيتم تخزينه في localStorage
+   examEndTime: end.toISOString() // سيتم تخزينه في sessionStorage
+  });
+
+ } catch (err) {
+  console.error("POST /api/validate_exam_token error:", err);
+  res.status(500).json({ success: false, error: "Database or server error" });
+ }
 });
-
 // 🆕 جلب إجابة طالب لسؤال محدد (تستخدمها دوال استمرارية الحالة في الفرونت إند)
 // 🆕 جلب إجابة طالب لسؤال محدد
 app.get("/api/answers", async (req, res) => {
@@ -636,6 +652,45 @@ app.post("/api/upload/audio", upload.single("audio"), async (req, res) => {
   }
 });
 
+app.get("/exams/not-invited", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "not-invited.html")); 
+});
+
+// 1. مسار لعرض صفحة "تم إنهاء الامتحان"
+app.get('/exams/finished', (req, res) => {
+    // افترض أن ملف finished.html موجود في مجلد public
+    res.sendFile(path.join(__dirname, 'public', 'finished.html'));
+});
+
+// في ملف server.js - إضافة مسار لتحديث حالة الانتهاء
+app.patch("/api/applicant/:id/finish", async (req, res) => {
+    const { id } = req.params; // هو applicantId
+    const { finished } = req.body;
+
+    // تحقق من وجود الـ ID والقيمة الصحيحة
+    if (!id || finished !== true) {
+        return res.status(400).json({ success: false, error: "بيانات الإدخال غير صالحة." });
+    }
+
+    try {
+        const result = await pool.query(
+            "UPDATE applicants SET finished = TRUE WHERE id = $1 AND finished = FALSE RETURNING id",
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            // يحدث هذا إذا لم يتم العثور على المتقدم، أو إذا كانت finished بالفعل TRUE
+            return res.status(404).json({ success: false, error: "المتقدم غير موجود أو تم الانتهاء مسبقاً." });
+        }
+
+        // إرسال رد النجاح
+        res.json({ success: true, message: "تم تسجيل حالة الانتهاء بنجاح." });
+
+    } catch (err) {
+        console.error("PATCH /api/applicant/:id/finish error:", err);
+        res.status(500).json({ success: false, error: "خطأ في قاعدة البيانات أو الخادم." });
+    }
+});
 app.use((req, res, next) => {
     // إرسال كود الحالة 404
     res.status(404);

@@ -151,7 +151,7 @@ app.get("/exams/admin/results", basicAuth, (req, res) => {
 // 🔓 مسارات المستخدم العادي (الغير محمية)
 
 // صفحة الأسئلة
-app.get("/exams/exam/:id/questions", (req, res) => {
+app.get("/exam/:id/questions", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "exams", "questions.html"));
 });
 
@@ -161,83 +161,91 @@ app.get("/exams/applicant-exam", (req, res) => {
 });
 
 // صفحة التسجيل 
-app.get("/exams/register", (req, res) => {
+app.get("/exams/applicant-register", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "exams", "applicant-register.html"));
 });
 
 // التحقق من رمز الدخول وتحديد الامتحان
 app.post("/api/validate_exam_token", async (req, res) => {
-  const { token } = req.body;
+ const { token } = req.body;
 
-  if (!token) {
-    return res.status(400).json({ success: false, error: "رمز الدخول مطلوب" });
+ if (!token) {
+  return res.status(400).json({ success: false, error: "رمز الدخول مطلوب" });
+ }
+
+ try {
+  // 1. جلب معلومات الطالب (تم إضافة finished)
+  const applicantResult = await pool.query(
+   "SELECT id, specialization, finished FROM applicants WHERE id=$1", // ⭐️ التعديل هنا: جلب عمود finished
+   [token]
+  );
+
+  if (applicantResult.rows.length === 0) {
+   return res.json({ success: false, error: "رمز دخول غير صحيح أو غير مسجل." });
   }
 
-  try {
-    // جلب معلومات الطالب
-    const applicantResult = await pool.query(
-      "SELECT id, specialization FROM applicants WHERE id=$1",
-      [token]
-    );
+  const applicant = applicantResult.rows[0];
 
-    if (applicantResult.rows.length === 0) {
-      return res.json({ success: false, error: "رمز دخول غير صحيح أو غير مسجل." });
+    // ⭐️ 2. التحقق من حالة الإنهاء (قبل التحقق من التوقيت)
+    if (applicant.finished === true) {
+        return res.json({ 
+            success: false, 
+            // رسالة الخطأ هذه سيتم استخدامها في applicant-exam.html لإجراء التوجيه
+            error: "لقد أكملت الامتحان مسبقًا." 
+        });
     }
 
-    const applicant = applicantResult.rows[0];
+  // جلب الامتحان المطابق للتخصص
+  const examResult = await pool.query(
+   "SELECT id, title, start_time_qat, end_time_qat FROM exams WHERE title=$1 ORDER BY id DESC LIMIT 1",
+   [applicant.specialization]
+  );
 
-    // جلب الامتحان المطابق للتخصص
-    const examResult = await pool.query(
-      "SELECT id, title, start_time_qat, end_time_qat FROM exams WHERE title=$1 ORDER BY id DESC LIMIT 1",
-      [applicant.specialization]
-    );
-
-    if (examResult.rows.length === 0) {
-      return res.json({ success: false, error: "لم يتم العثور على امتحان لهذا التخصص" });
-    }
-
-    const exam = examResult.rows[0];
-
-    // التحقق من التوقيت على السيرفر
-    const now = new Date();
-    const start = new Date(exam.start_time_qat);
-    const end = new Date(exam.end_time_qat);
-
-    const optionsDate = { timeZone: "Asia/Qatar", day: '2-digit', month: '2-digit', year: 'numeric' };
-    const optionsTime = { timeZone: "Asia/Qatar", hour: '2-digit', minute: '2-digit' };
-
-    // تمرير الأوقات المنسقة بشكل موثوق
-    exam.startDateStr = start.toLocaleDateString("en-GB", optionsDate);
-    exam.startTimeStr = start.toLocaleTimeString("en-GB", optionsTime);
-    exam.endDateStr = end.toLocaleDateString("en-GB", optionsDate);
-    exam.endTimeStr = end.toLocaleTimeString("en-GB", optionsTime);
-
-    // إذا كان الوقت خارج الإطار الزمني المسموح
-    if (now < start || now > end) {
-      return res.json({
-        success: false,
-        error: "الامتحان غير متاح حالياً.",
-        exam
-      });
-    }
-
-    // كل شيء صحيح
-    res.json({
-      success: true,
-      examId: exam.id,
-      exam,
-      // ✨ الحقول الضرورية لتخزينها في الواجهة الأمامية ✨
-      validationToken: token, // سيتم تخزينه في sessionStorage
-      applicantId: applicant.id, // سيتم تخزينه في localStorage
-      examEndTime: end.toISOString() // سيتم تخزينه في sessionStorage
-    });
-
-  } catch (err) {
-    console.error("POST /api/validate_exam_token error:", err);
-    res.status(500).json({ success: false, error: "Database or server error" });
+  if (examResult.rows.length === 0) {
+   return res.json({ success: false, error: "لم يتم العثور على امتحان لهذا التخصص" });
   }
+
+  const exam = examResult.rows[0];
+
+  // التحقق من التوقيت على السيرفر
+  const now = new Date();
+  const start = new Date(exam.start_time_qat);
+  const end = new Date(exam.end_time_qat);
+
+  const optionsDate = { timeZone: "Asia/Qatar", day: '2-digit', month: '2-digit', year: 'numeric' };
+  const optionsTime = { timeZone: "Asia/Qatar", hour: '2-digit', minute: '2-digit' };
+
+  // تمرير الأوقات المنسقة بشكل موثوق
+  exam.startDateStr = start.toLocaleDateString("en-GB", optionsDate);
+  exam.startTimeStr = start.toLocaleTimeString("en-GB", optionsTime);
+  exam.endDateStr = end.toLocaleDateString("en-GB", optionsDate);
+  exam.endTimeStr = end.toLocaleTimeString("en-GB", optionsTime);
+
+  // إذا كان الوقت خارج الإطار الزمني المسموح (يتم التحقق منه فقط إذا لم يكن قد أنهى مسبقاً)
+  if (now < start || now > end) {
+   return res.json({
+    success: false,
+    error: "الامتحان غير متاح حالياً.",
+    exam
+   });
+  }
+
+  // كل شيء صحيح (غير مكمل، والتوقيت مسموح)
+  res.json({
+   success: true,
+   examId: exam.id,
+   exam,
+   // ✨ الحقول الضرورية لتخزينها في الواجهة الأمامية ✨
+   validationToken: token, // سيتم تخزينه في sessionStorage
+   applicantId: applicant.id, // سيتم تخزينه في localStorage
+   examEndTime: end.toISOString() // سيتم تخزينه في sessionStorage
+  });
+
+ } catch (err) {
+  console.error("POST /api/validate_exam_token error:", err);
+  res.status(500).json({ success: false, error: "Database or server error" });
+ }
 });
-
 // 🆕 جلب إجابة طالب لسؤال محدد (تستخدمها دوال استمرارية الحالة في الفرونت إند)
 // 🆕 جلب إجابة طالب لسؤال محدد
 app.get("/api/answers", async (req, res) => {
@@ -634,6 +642,35 @@ app.post("/api/upload/audio", upload.single("audio"), async (req, res) => {
     console.error("R2 Upload Error:", err);
     res.status(500).json({ success: false, error: "فشل رفع الملف إلى R2" });
   }
+});
+
+// 1. مسار لعرض صفحة "تم إنهاء الامتحان"
+app.get('/finished', (req, res) => {
+    // افترض أن ملف finished.html موجود في مجلد public
+    res.sendFile(path.join(__dirname, 'public', 'finished.html'));
+});
+
+// ... (بقية المسارات)
+
+app.use((req, res, next) => {
+    // إرسال كود الحالة 404
+    res.status(404);
+
+    // التحقق من نوع الطلب
+    if (req.accepts('html')) {
+        // إذا كان الطلب لصفحة HTML، أرسل ملف تصميم 404.html
+        res.sendFile(path.join(__dirname, 'public', '404.html'));
+        return;
+    }
+
+    // إذا كان الطلب لـ API أو أي شيء آخر، أرسل JSON
+    if (req.accepts('json')) {
+        res.json({ error: 'Not Found', message: 'The requested resource was not found on this server.' });
+        return;
+    }
+
+    // للمطالبات الأخرى، أرسل نصًا عاديًا
+    res.send('404 Not Found');
 });
 
 // =======================
