@@ -653,13 +653,13 @@ app.post("/api/upload/audio", upload.single("audio"), async (req, res) => {
 });
 
 app.get("/exams/not-invited", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "not-invited.html")); 
+  res.sendFile(path.join(__dirname, "public", "exams", "not-invited.html"));
 });
 
 // 1. مسار لعرض صفحة "تم إنهاء الامتحان"
 app.get('/exams/finished', (req, res) => {
     // افترض أن ملف finished.html موجود في مجلد public
-    res.sendFile(path.join(__dirname, 'public', 'finished.html'));
+  res.sendFile(path.join(__dirname, "public", "exams", "finished.html"));
 });
 
 // في ملف server.js - إضافة مسار لتحديث حالة الانتهاء
