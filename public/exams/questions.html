@@ -377,55 +377,55 @@ async function finishExamAndSubmitAll() {
     // افترض أن applicantId مُعرّف ومتاح عالميًا أو من localStorage
     const applicantId = localStorage.getItem('applicantId'); 
     
-    const finishBtn = $('#finishExamBtn');
-    finishBtn.disabled = true;
-    finishBtn.textContent = 'جاري إرسال الإجابات... يرجى الانتظار (قد يستغرق 30 ثانية)...';
-    finishBtn.classList.add('opacity-50', 'cursor-not-allowed');
+  const finishBtn = $('#finishExamBtn');
+  finishBtn.disabled = true;
+  finishBtn.textContent = 'جاري إرسال الإجابات... يرجى الانتظار (قد يستغرق 30 ثانية)...';
+  finishBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-    const questions = Array.from(document.querySelectorAll('article[data-question-id]'));
-    
-    // إيجاد جميع الأزرار التي يجب الضغط عليها (لأي سؤال لم يتم حفظ إجابته بعد)
-    const submitButtons = questions.reduce((acc, article) => {
-        const typeEl = article.querySelector('.q-section-title');
-        const stateEl = article.querySelector('.recording-state');
+  const questions = Array.from(document.querySelectorAll('article[data-question-id]'));
+  
+  // إيجاد جميع الأزرار التي يجب الضغط عليها (لأي سؤال لم يتم حفظ إجابته بعد)
+  const submitButtons = questions.reduce((acc, article) => {
+    const typeEl = article.querySelector('.q-section-title');
+    const stateEl = article.querySelector('.recording-state');
 
-        // لا نحاول إرسال الأسئلة التي تم حفظها بالفعل
-        if (stateEl && stateEl.textContent.includes('تم حفظ')) {
-            return acc;
-        }
+    // لا نحاول إرسال الأسئلة التي تم حفظها بالفعل
+    if (stateEl && stateEl.textContent.includes('تم حفظ')) {
+      return acc;
+    }
 
-        // 1. حالة الاختيار من متعدد
-        if (typeEl.textContent.includes('اختيار من متعدد')) {
-            const submitOptionBtn = article.querySelector('.submit-option');
-             // نرسل فقط إذا كان هناك خيار مُحدد ولم يتم حفظه بعد
-            if (submitOptionBtn && submitOptionBtn.dataset.mode !== 'edit' && article.querySelector('.option-radio:checked')) {
-                acc.push(submitOptionBtn);
-            }
-            return acc;
-        }
+    // 1. حالة الاختيار من متعدد
+    if (typeEl.textContent.includes('اختيار من متعدد')) {
+      const submitOptionBtn = article.querySelector('.submit-option');
+      // نرسل فقط إذا كان هناك خيار مُحدد ولم يتم حفظه بعد
+      if (submitOptionBtn && submitOptionBtn.dataset.mode !== 'edit' && article.querySelector('.option-radio:checked')) {
+        acc.push(submitOptionBtn);
+      }
+      return acc;
+    }
 
-        // 2. حالة الإجابة النصية/الصوتية
-        const submitAnswerBtn = article.querySelector('.submit-answer');
-        const textarea = article.querySelector('.text-input');
-        const hasAudioUrl = submitAnswerBtn && submitAnswerBtn.dataset.audioUrl;
-        
-        // نرسل فقط إذا كان هناك محتوى جديد ولم يتم حفظه بعد
-        if (submitAnswerBtn && submitAnswerBtn.dataset.mode !== 'edit' && (textarea?.value || hasAudioUrl)) {
-            acc.push(submitAnswerBtn);
-        }
-        return acc;
-    }, []);
+    // 2. حالة الإجابة النصية/الصوتية
+    const submitAnswerBtn = article.querySelector('.submit-answer');
+    const textarea = article.querySelector('.text-input');
+    const hasAudioUrl = submitAnswerBtn && submitAnswerBtn.dataset.audioUrl;
+    
+    // نرسل فقط إذا كان هناك محتوى جديد ولم يتم حفظه بعد
+    if (submitAnswerBtn && submitAnswerBtn.dataset.mode !== 'edit' && (textarea?.value || hasAudioUrl)) {
+      acc.push(submitAnswerBtn);
+    }
+    return acc;
+  }, []);
 
-    let successfulSubmissions = 0;
-    
-    // تشغيل الأحداث على الأزرار المتبقية لإرسال البيانات
-    for (const btn of submitButtons) {
-        btn.click();
-        successfulSubmissions++;
-        await new Promise(resolve => setTimeout(resolve, 500));
-    }
-    
-    finishBtn.textContent = `تم إرسال ${successfulSubmissions} إجابة متبقية. جاري إنهاء الامتحان...`;
+  let successfulSubmissions = 0;
+  
+  // تشغيل الأحداث على الأزرار المتبقية لإرسال البيانات
+  for (const btn of submitButtons) {
+    btn.click();
+    successfulSubmissions++;
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  
+  finishBtn.textContent = `تم إرسال ${successfulSubmissions} إجابة متبقية. جاري إنهاء الامتحان...`;
     
     // ======================================================
     // ⭐️⭐️ الإضافة الحاسمة: تحديث حالة finished للمتقدم في DB ⭐️⭐️
@@ -451,18 +451,18 @@ async function finishExamAndSubmitAll() {
     }
     // ======================================================
     
-    // إيقاف العد التنازلي
-    if (timerInterval) clearInterval(timerInterval);
-    
-    // مسح مفاتيح الجلسة والأمان
-    sessionStorage.removeItem('examValidationToken');
-    sessionStorage.removeItem('examEndTime');
+  // إيقاف العد التنازلي
+  if (timerInterval) clearInterval(timerInterval);
+  
+  // مسح مفاتيح الجلسة والأمان
+  sessionStorage.removeItem('examValidationToken');
+  sessionStorage.removeItem('examEndTime');
 
-    // الانتظار ثواني للتأكد من اكتمال الإرسال ثم التوجيه
-    await new Promise(resolve => setTimeout(resolve, 3000)); 
-    
-    // التوجيه إلى صفحة الانتهاء المخصصة
-    window.location.href = '/exams/finished';
+  // الانتظار ثواني للتأكد من اكتمال الإرسال ثم التوجيه
+  await new Promise(resolve => setTimeout(resolve, 3000)); 
+  
+  // التوجيه إلى صفحة الانتهاء المخصصة
+  window.location.href = '/exams/finished';
 }
 // 🚦 إعداد مُستمع الحدث للزر الجديد
 document.addEventListener('DOMContentLoaded', () => {
@@ -526,13 +526,7 @@ async function loadExam() {
 // 🎨 دوال الرسم والعرض - بعد تعديل حسابansweredQuestions
 // ===================================
 function renderQuestions(list) {
-console.log("✅ renderQuestions started, list length:", list.length);
 const tpl = $('#questionTemplate');
-if (!tpl) {
-  console.error("❌ لم يتم العثور على القالب #questionTemplate في الصفحة!");
-  questionsContainer.innerHTML = '<div class="text-center text-red-700 p-8 q-card rounded-xl">خطأ: لم يتم العثور على القالب داخل الصفحة.</div>';
-  return;
-}
 const container = $('#questionsContainer');
 container.innerHTML = '';
 
@@ -565,20 +559,12 @@ for (const sectionId in sections) {
  const article = node.querySelector('article');
  
  article.dataset.questionId = q.id;
-const qIndexEl = article.querySelector('.q-index');
- if (qIndexEl) {
-   qIndexEl.textContent = questionIndex++;
- }
- // ✅ التعديل الثاني: استخدام article للبحث عن q-text
- const qTextEl = article.querySelector('.q-text');
- if (qTextEl) {
-   qTextEl.innerHTML = q.text;
- }
+ article.querySelector('.q-index').textContent = questionIndex++;
+ article.querySelector('.q-text').innerHTML = q.text;
 
  container.appendChild(node);
-
-if (window.MathJax && typeof MathJax.typesetPromise === "function") {
-  MathJax.typesetPromise([article]).catch(err => console.warn("MathJax error:", err));
+ if(window.MathJax){
+  MathJax.typesetPromise([article]);
 }
  
  // ⭐️ إضافة منطق حساب الإجابات السابقة هنا!
@@ -594,14 +580,14 @@ if (window.MathJax && typeof MathJax.typesetPromise === "function") {
  else if (q.type === 'audio') typeText = 'إجابة صوتية إجبارية';
  else typeText = 'إجابة مفتوحة';
 
- node.querySelector('.q-section-title').textContent = `النوع: ${typeText}`;
+ article.querySelector('.q-section-title').textContent = `النوع: ${typeText}`;
  
  
- const audioControls = node.querySelector('.audio-controls-group');
- const textInput = node.querySelector('.text-input');
- const optionsArea = node.querySelector('.options-area');
- const answerArea = node.querySelector('.answer-area');
- const submitAnswerBtn = node.querySelector('.submit-answer');
+ const audioControls = article.querySelector('.audio-controls-group');
+ const textInput = article.querySelector('.text-input');
+ const optionsArea = article.querySelector('.options-area');
+ const answerArea = article.querySelector('.answer-area');
+ const submitAnswerBtn = article.querySelector('.submit-answer');
 
 
  if (q.type === 'multiple_choice') {
@@ -614,7 +600,7 @@ if (window.MathJax && typeof MathJax.typesetPromise === "function") {
  textInput.classList.add('hidden'); 
  }
  
- bindRecorder(node, q);
+ bindRecorder(article, q);
  });
 }
 
@@ -624,134 +610,149 @@ answeredQuestions = answeredQuestionIds.size;
 
 // ⭐️ تم إضافة المتغير الثالث: answerIdFromInitialLoad
 async function loadOptions(questionId, container, answerIdFromInitialLoad) {
-  // ... (جلب محتوى مبدئي وعرض رسالة التحميل)
-  const initialContentHtml = container.querySelector('p').outerHTML;
-  const errorElHtml = container.querySelector('.submission-error').outerHTML;
+ // ... (جلب محتوى مبدئي وعرض رسالة التحميل)
+ const initialContentHtml = container.querySelector('p').outerHTML;
+ const errorElHtml = container.querySelector('.submission-error').outerHTML;
+ 
+ container.innerHTML = initialContentHtml + '<p class="text-gray-500">جاري تحميل الخيارات...</p>';
+ 
+ try {
+  // 1. جلب الخيارات
+  const optionsRes = await fetch(`${API.options}?question_id=${questionId}`);
+  const options = await optionsRes.json();
   
-  container.innerHTML = initialContentHtml + '<p class="text-gray-500">جاري تحميل الخيارات...</p>';
+  if (!optionsRes.ok) throw new Error('Failed to load options from server');
+
+  // ✅ استخدام القيمة التي تم تمريرها
+  const previousOptionId = answerIdFromInitialLoad || null; 
+  const isAnswered = !!previousOptionId;
   
-  try {
-    // 1. جلب الخيارات
-    const optionsRes = await fetch(`${API.options}?question_id=${questionId}`);
-    const options = await optionsRes.json();
+
+  const optionsHtml = options.map(opt => {
+   // 3. تطبيق خاصيتي checked و disabled
+   const isChecked = opt.id === previousOptionId ? 'checked' : ''; 
+   const isDisabled = isAnswered ? 'disabled' : ''; // تعطيل الإدخال
+   
+   // 4. تنسيق الـ Label بناءً على حالة الإجابة (لإظهار التعطيل)
+   const labelClasses = isAnswered 
+    ? 'opacity-50 cursor-not-allowed' 
+    : 'cursor-pointer'; 
+
+   return `
+    <div class="flex items-center option-wrapper">
+     <input type="radio" name="option_q${questionId}" id="option_${opt.id}" value="${opt.id}" class="hidden option-radio" ${isChecked} ${isDisabled} />
+     <label for="option_${opt.id}" class="option-label flex-1 p-3 rounded-lg ${labelClasses}">${opt.text}</label>
+   </div>
+   `;
+  }).join('');
     
-    if (!optionsRes.ok) throw new Error('Failed to load options from server');
-
-    // ✅ استخدام القيمة التي تم تمريرها (بدلاً من نداء API الإضافي الذي أزلناه)
-    const previousOptionId = answerIdFromInitialLoad || null; 
-    const isAnswered = !!previousOptionId;
-    
-
-    const optionsHtml = options.map(opt => {
-      // 3. تطبيق خاصيتي checked و disabled
-      const isChecked = opt.id === previousOptionId ? 'checked' : ''; 
-      const isDisabled = isAnswered ? 'disabled' : ''; // تعطيل الإدخال
-      
-      // 4. تنسيق الـ Label بناءً على حالة الإجابة (لإظهار التعطيل)
-      const labelClasses = isAnswered 
-        ? 'opacity-50 cursor-not-allowed' 
-        : 'cursor-pointer'; 
-
-      return `
-        <div class="flex items-center option-wrapper">
-          <input type="radio" name="option_q${questionId}" id="option_${opt.id}" value="${opt.id}" class="hidden option-radio" ${isChecked} ${isDisabled} />
-          <label for="option_${opt.id}" class="option-label flex-1 p-3 rounded-lg ${labelClasses}">${opt.text}</label>
-      </div>
-      `;
-    }).join('');
-
-    // ✅ 5. إعادة بناء المحتوى مع إضافة الحاوي الذي يضبط المسافة (space-y-3)
-    container.innerHTML = `
-      ${initialContentHtml}
+    // ⭐️ التعديل الأول: فصل الـ HTML الخاص بالخيارات إلى متغير
+    const optionsListWrapperHtml = `
       <div class="options-list-wrapper space-y-3 pt-4 border-t border-gray-200">
         ${optionsHtml}
       </div>
-      <button class="submit-option btn-primary p-2 px-4 rounded-lg text-sm mt-4">${isAnswered ? 'تعديل الاختيار' : 'إرسال الاختيار'}</button>
-      ${errorElHtml}
     `;
 
-    // 6. استكمال باقي المنطق
-    const newSubmitBtn = container.querySelector('.submit-option');
-    const radioInputs = container.querySelectorAll(`input[name="option_q${questionId}"]`);
-    const stateEl = container.closest('article').querySelector('.recording-state');
+  // ✅ 5. إعادة بناء المحتوى مع إضافة الحاوي الذي يضبط المسافة (space-y-3)
+  container.innerHTML = `
+   ${initialContentHtml}
+      ${optionsListWrapperHtml}
+   <button class="submit-option btn-primary p-2 px-4 rounded-lg text-sm mt-4">${isAnswered ? 'تعديل الاختيار' : 'إرسال الاختيار'}</button>
+   ${errorElHtml}
+  `;
+    
+    // ⭐️ التعديل الثاني: تحديد العنصر الجديد لاستدعاء MathJax عليه
+    const optionsListWrapper = container.querySelector('.options-list-wrapper');
 
-    if (isAnswered) {
-      newSubmitBtn.dataset.mode = 'edit';
-      stateEl.textContent = 'تم حفظ اختيارك مسبقًا ✅';
+    // ⭐️ التعديل الثالث: استدعاء MathJax لمعالجة الخيارات
+    if(window.MathJax && optionsListWrapper){
+        // تمرير العنصر إلى MathJax.typesetPromise
+        MathJax.typesetPromise([optionsListWrapper])
+            .catch(err => console.warn("MathJax error during option rendering:", err));
     }
+    
+  // 6. استكمال باقي المنطق
+  const newSubmitBtn = container.querySelector('.submit-option');
+  const radioInputs = container.querySelectorAll(`input[name="option_q${questionId}"]`);
+  const stateEl = container.closest('article').querySelector('.recording-state');
 
-    // دالة مساعدة لتعطيل/تفعيل الخيارات
-    const toggleOptionControls = (disable) => {
-      radioInputs.forEach(input => {
-        input.disabled = disable;
-        const label = input.nextElementSibling;
-        // تحديث كلاسات الـ Label بناءً على حالة التعطيل
-        if (disable) {
-          label.classList.add('opacity-50', 'cursor-not-allowed');
-          label.classList.remove('cursor-pointer');
-        } else {
-          label.classList.remove('opacity-50', 'cursor-not-allowed');
-          label.classList.add('cursor-pointer');
-        }
-      });
-      if (disable) {
-        newSubmitBtn.textContent = 'تعديل الاختيار';
-        newSubmitBtn.dataset.mode = 'edit';
-      } else {
-        newSubmitBtn.textContent = 'إرسال الاختيار';
-        delete newSubmitBtn.dataset.mode;
-      }
-    };
-
-    newSubmitBtn.addEventListener('click', async (e) => {
-      // 1. منطق "تعديل الاختيار"
-      if (newSubmitBtn.dataset.mode === 'edit') {
-        toggleOptionControls(false); // تمكين الإدخال
-        stateEl.textContent = 'لم يتم إرسال الإجابة بعد التعديل.';
-        return;
-      }
-
-      // تحقق من نهاية الوقت
-      if (examEndTime && new Date().getTime() > examEndTime.getTime()) return;
-
-      const selectedOption = container.querySelector(`input[name="option_q${questionId}"]:checked`);
-      
-      if (!selectedOption) {
-        alert('الرجاء اختيار خيار واحد.');
-        return;
-      }
-      
-      // ... (بقية منطق الإرسال لـ API.answers)
-      const currentApplicantId = applicantId; 
-      stateEl.textContent = 'جاري إرسال الاختيار...';
-
-      const payload = {
-        exam_id: examId,
-        question_id: questionId,
-        applicant_id: currentApplicantId,
-        answer_option_id: parseInt(selectedOption.value)
-      };
-
-      const postRes = await fetch(API.answers, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify(payload) 
-      });
-
-      if (postRes.ok) {
-        stateEl.textContent = 'تم إرسال الاختيار وحفظه ✅';
-        markAsAnswered(questionId);
-        // بعد الإرسال بنجاح: نعطل ونغير الزر
-        toggleOptionControls(true);
-      } else {
-        stateEl.textContent = `فشل الإرسال ❌. خطأ: ${postRes.statusText}`;
-      }
-    });
-
-  } catch (e) {
-    console.error('Error loading options:', e);
-    container.innerHTML = initialContentHtml + '<p class="text-red-500">فشل جلب خيارات السؤال. تأكد من تشغيل server.js والبيانات.</p>';
+  if (isAnswered) {
+   newSubmitBtn.dataset.mode = 'edit';
+   stateEl.textContent = 'تم حفظ اختيارك مسبقًا ✅';
   }
+
+  // دالة مساعدة لتعطيل/تفعيل الخيارات
+  const toggleOptionControls = (disable) => {
+   radioInputs.forEach(input => {
+    input.disabled = disable;
+    const label = input.nextElementSibling;
+    // تحديث كلاسات الـ Label بناءً على حالة التعطيل
+    if (disable) {
+     label.classList.add('opacity-50', 'cursor-not-allowed');
+     label.classList.remove('cursor-pointer');
+    } else {
+     label.classList.remove('opacity-50', 'cursor-not-allowed');
+     label.classList.add('cursor-pointer');
+    }
+   });
+   if (disable) {
+    newSubmitBtn.textContent = 'تعديل الاختيار';
+    newSubmitBtn.dataset.mode = 'edit';
+   } else {
+    newSubmitBtn.textContent = 'إرسال الاختيار';
+    delete newSubmitBtn.dataset.mode;
+   }
+  };
+
+  newSubmitBtn.addEventListener('click', async (e) => {
+   // 1. منطق "تعديل الاختيار"
+   if (newSubmitBtn.dataset.mode === 'edit') {
+    toggleOptionControls(false); // تمكين الإدخال
+    stateEl.textContent = 'لم يتم إرسال الإجابة بعد التعديل.';
+    return;
+   }
+
+   // تحقق من نهاية الوقت
+   if (examEndTime && new Date().getTime() > examEndTime.getTime()) return;
+
+   const selectedOption = container.querySelector(`input[name="option_q${questionId}"]:checked`);
+   
+   if (!selectedOption) {
+    alert('الرجاء اختيار خيار واحد.');
+    return;
+   }
+   
+   // ... (بقية منطق الإرسال لـ API.answers)
+   const currentApplicantId = applicantId; 
+   stateEl.textContent = 'جاري إرسال الاختيار...';
+
+   const payload = {
+    exam_id: examId,
+    question_id: questionId,
+    applicant_id: currentApplicantId,
+    answer_option_id: parseInt(selectedOption.value)
+   };
+
+   const postRes = await fetch(API.answers, { 
+    method: 'POST', 
+    headers: { 'Content-Type': 'application/json' }, 
+    body: JSON.stringify(payload) 
+   });
+
+   if (postRes.ok) {
+    stateEl.textContent = 'تم إرسال الاختيار وحفظه ✅';
+    markAsAnswered(questionId);
+    // بعد الإرسال بنجاح: نعطل ونغير الزر
+    toggleOptionControls(true);
+   } else {
+    stateEl.textContent = `فشل الإرسال ❌. خطأ: ${postRes.statusText}`;
+   }
+  });
+
+ } catch (e) {
+  console.error('Error loading options:', e);
+  container.innerHTML = initialContentHtml + '<p class="text-red-500">فشل جلب خيارات السؤال. تأكد من تشغيل server.js والبيانات.</p>';
+ }
 } // ===================================
  // 🎙️ دوال التسجيل الصوتي (Web Audio API)
  // ===================================

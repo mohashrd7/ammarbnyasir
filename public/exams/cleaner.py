@@ -1,7 +1,7 @@
 import re
 
 # اسم الملف الأصلي
-input_file = "applicant-register.html"       # غيّر الاسم لملفك
+input_file = "questions-admin.html"       # غيّر الاسم لملفك
 output_file = "file.clean.html"
 
 # أحرف Unicode التي تسبب مشاكل

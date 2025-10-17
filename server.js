@@ -132,6 +132,9 @@ const basicAuth = (req, res, next) => {
 // =======================
 
 // 🔒 مسارات الإدارة المحمية بـ Basic Auth
+app.get("/exams/:id/questions-admin", basicAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "exams", "questions-admin.html"));
+});
 app.get("/exams/add", basicAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "exams", "add.html"));
 });
