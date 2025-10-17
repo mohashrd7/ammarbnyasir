@@ -562,6 +562,8 @@ for (const sectionId in sections) {
  node.querySelector('.q-index').textContent = questionIndex++;
  node.querySelector('.q-text').innerHTML = q.text;
 
+ container.appendChild(node);
+ 
  if(window.MathJax){
   MathJax.typesetPromise(article);
 }
@@ -600,7 +602,6 @@ for (const sectionId in sections) {
  }
  
  bindRecorder(node, q);
- container.appendChild(node);
  });
 }
 
