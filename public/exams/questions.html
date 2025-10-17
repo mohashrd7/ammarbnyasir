@@ -565,8 +565,15 @@ for (const sectionId in sections) {
  const article = node.querySelector('article');
  
  article.dataset.questionId = q.id;
- node.querySelector('.q-index').textContent = questionIndex++;
- node.querySelector('.q-text').innerHTML = q.text;
+const qIndexEl = article.querySelector('.q-index');
+ if (qIndexEl) {
+   qIndexEl.textContent = questionIndex++;
+ }
+ // ✅ التعديل الثاني: استخدام article للبحث عن q-text
+ const qTextEl = article.querySelector('.q-text');
+ if (qTextEl) {
+   qTextEl.innerHTML = q.text;
+ }
 
  container.appendChild(node);
 
