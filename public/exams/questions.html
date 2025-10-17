@@ -560,7 +560,7 @@ for (const sectionId in sections) {
  
  article.dataset.questionId = q.id;
  node.querySelector('.q-index').textContent = questionIndex++;
- node.querySelector('.q-text').textContent = q.text;
+ node.querySelector('.q-text').innerHTML = q.text;
  
  // ⭐️ إضافة منطق حساب الإجابات السابقة هنا!
  // يتم اعتبار السؤال مجابًا عليه إذا كان لديه نص أو رابط صوتي أو خيار مختار مسبقًا.
@@ -599,6 +599,11 @@ for (const sectionId in sections) {
  container.appendChild(node);
  });
 }
+
+if(window.MathJax){
+  MathJax.typesetPromise(container);
+}
+
 answeredQuestions = answeredQuestionIds.size;
 }
 // داخل دالة loadOptions(questionId, container) { ... }
