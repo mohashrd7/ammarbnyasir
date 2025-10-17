@@ -564,8 +564,8 @@ for (const sectionId in sections) {
 
  container.appendChild(node);
 
- if(window.MathJax){
-  MathJax.typesetPromise([article]);
+if (window.MathJax && typeof MathJax.typesetPromise === "function") {
+  MathJax.typesetPromise([article]).catch(err => console.warn("MathJax error:", err));
 }
  
  // ⭐️ إضافة منطق حساب الإجابات السابقة هنا!
