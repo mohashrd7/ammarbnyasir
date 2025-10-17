@@ -563,9 +563,9 @@ for (const sectionId in sections) {
  node.querySelector('.q-text').innerHTML = q.text;
 
  container.appendChild(node);
- 
+
  if(window.MathJax){
-  MathJax.typesetPromise(article);
+  MathJax.typesetPromise([article]);
 }
  
  // ⭐️ إضافة منطق حساب الإجابات السابقة هنا!
