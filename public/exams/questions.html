@@ -103,6 +103,17 @@
   transition: width 0.5s ease-in-out;
 }
 </style>
+<script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']] // لتفعيل عرض الرموز داخل $ $
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 
 <body>
@@ -113,7 +124,6 @@
         <img src="/exams/logo.svg" alt="logo" class="h-12 object-contain rounded" onerror="this.style.opacity=0.6;" />
         <div>
             <div class="font-extrabold text-gray-900 text-xl">منصة الاختبارات</div>
-            <div class="text-xs text-gray-500">تقديم الإجابات الفورية</div>
         </div>
     </div>
 
