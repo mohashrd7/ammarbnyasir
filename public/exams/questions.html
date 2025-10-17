@@ -563,7 +563,7 @@ for (const sectionId in sections) {
  node.querySelector('.q-text').innerHTML = q.text;
 
  if(window.MathJax){
-  MathJax.typesetPromise(container);
+  MathJax.typesetPromise(article);
 }
  
  // ⭐️ إضافة منطق حساب الإجابات السابقة هنا!
@@ -1050,10 +1050,21 @@ initializePreviousAnswerState();
  // 🚀 بدء التشغيل
  // ===================================
   // يتم بدء التشغيل فقط إذا مر التحقق الأمني
-  if (examId && validationToken && applicantId && examEndTimeISO) {
-   loadExam();
-   loadQuestions();
+
+  function initializeExam() {
+    loadExam();
+    loadQuestions(); // هذه الدالة ستعرض الأسئلة وتستدعي MathJax.typesetPromise
     startTimer(); 
+}
+  if (examId && validationToken && applicantId && examEndTimeISO) {
+   if (window.MathJax && MathJax.startup) {
+        // ضمان تحميل MathJax بالكامل قبل بدء عرض الأسئلة
+        // هذا السطر يضمن أن MathJax جاهزة بالكامل قبل تشغيل loadQuestions
+        MathJax.startup.promise.then(initializeExam);
+    } else {
+        // كخيار احتياطي إذا لم تتعرف النافذة على MathJax
+        initializeExam();
+    }
   }
 </script>
 </body>
