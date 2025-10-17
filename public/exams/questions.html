@@ -526,7 +526,13 @@ async function loadExam() {
 // 🎨 دوال الرسم والعرض - بعد تعديل حسابansweredQuestions
 // ===================================
 function renderQuestions(list) {
+console.log("✅ renderQuestions started, list length:", list.length);
 const tpl = $('#questionTemplate');
+if (!tpl) {
+  console.error("❌ لم يتم العثور على القالب #questionTemplate في الصفحة!");
+  questionsContainer.innerHTML = '<div class="text-center text-red-700 p-8 q-card rounded-xl">خطأ: لم يتم العثور على القالب داخل الصفحة.</div>';
+  return;
+}
 const container = $('#questionsContainer');
 container.innerHTML = '';
 
