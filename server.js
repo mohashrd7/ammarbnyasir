@@ -133,7 +133,7 @@ const basicAuth = (req, res, next) => {
 
 // 🔒 مسارات الإدارة المحمية بـ Basic Auth
 app.get("/exams/:id/questions-admin", basicAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "exams", "questions-admin.html"));
+ res.sendFile(path.join(__dirname, "public", "exams", "questions-admin.html"));
 });
 app.get("/exams/add", basicAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "exams", "add.html"));
@@ -177,11 +177,11 @@ app.post("/api/validate_exam_token", async (req, res) => {
  }
 
 try {
-  // 1. جلب معلومات الطالب (تم إضافة finished)
-  const applicantResult = await pool.query(
-   "SELECT id, specialization, finished, invited FROM applicants WHERE id=$1",
-   [token] // ✅ هذا هو السطر الذي أُضيف أو نُقل خارج التعليق
-  );
+ // 1. جلب معلومات الطالب (تم إضافة finished)
+ const applicantResult = await pool.query(
+ "SELECT id, specialization, finished, invited FROM applicants WHERE id=$1",
+ [token] // ✅ هذا هو السطر الذي أُضيف أو نُقل خارج التعليق
+ );
   if (applicantResult.rows.length === 0) {
    return res.json({ success: false, error: "رمز دخول غير صحيح أو غير مسجل." });
   }
@@ -611,8 +611,21 @@ app.post("/api/answers", async (req, res) => {
 app.get("/api/applicants/by_specialization/:specialization", async (req, res) => {
   const { specialization } = req.params;
   try {
+    // 💡 التعديل: استخدام INNER JOIN مع جدول answers
+    // هذا يضمن إرجاع المتقدمين الذين لديهم إجابات محفوظة فقط.
     const result = await pool.query(
-      "SELECT id, name, email FROM applicants WHERE specialization=$1 ORDER BY name ASC",
+      `SELECT DISTINCT
+        a.id, 
+        a.name, 
+        a.email
+      FROM 
+        applicants AS a
+      INNER JOIN 
+        answers AS ans ON a.id = ans.applicant_id
+      WHERE 
+        a.specialization = $1
+      ORDER BY 
+        a.name ASC`,
       [specialization]
     );
     res.json(result.rows);

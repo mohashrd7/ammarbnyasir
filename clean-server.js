@@ -132,6 +132,9 @@ const basicAuth = (req, res, next) => {
 // =======================
 
 // 🔒 مسارات الإدارة المحمية بـ Basic Auth
+app.get("/exams/:id/questions-admin", basicAuth, (req, res) => {
+ res.sendFile(path.join(__dirname, "public", "exams", "questions-admin.html"));
+});
 app.get("/exams/add", basicAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "exams", "add.html"));
 });
@@ -173,18 +176,25 @@ app.post("/api/validate_exam_token", async (req, res) => {
   return res.status(400).json({ success: false, error: "رمز الدخول مطلوب" });
  }
 
- try {
-  // 1. جلب معلومات الطالب (تم إضافة finished)
-  const applicantResult = await pool.query(
-   "SELECT id, specialization, finished FROM applicants WHERE id=$1", // ⭐️ التعديل هنا: جلب عمود finished
-   [token]
-  );
-
+try {
+ // 1. جلب معلومات الطالب (تم إضافة finished)
+ const applicantResult = await pool.query(
+ "SELECT id, specialization, finished, invited FROM applicants WHERE id=$1",
+ [token] // ✅ هذا هو السطر الذي أُضيف أو نُقل خارج التعليق
+ );
   if (applicantResult.rows.length === 0) {
    return res.json({ success: false, error: "رمز دخول غير صحيح أو غير مسجل." });
   }
 
   const applicant = applicantResult.rows[0];
+
+  if (applicant.invited === false) {
+        return res.json({ 
+            success: false, 
+            // رسالة خطأ جديدة خاصة بعدم الدعوة
+            error: "غير مدعو للامتحان." 
+        });
+    }
 
     // ⭐️ 2. التحقق من حالة الإنهاء (قبل التحقق من التوقيت)
     if (applicant.finished === true) {
@@ -601,8 +611,21 @@ app.post("/api/answers", async (req, res) => {
 app.get("/api/applicants/by_specialization/:specialization", async (req, res) => {
   const { specialization } = req.params;
   try {
+    // 💡 التعديل: استخدام INNER JOIN مع جدول answers
+    // هذا يضمن إرجاع المتقدمين الذين لديهم إجابات محفوظة فقط.
     const result = await pool.query(
-      "SELECT id, name, email FROM applicants WHERE specialization=$1 ORDER BY name ASC",
+      `SELECT DISTINCT
+        a.id, 
+        a.name, 
+        a.email
+      FROM 
+        applicants AS a
+      INNER JOIN 
+        answers AS ans ON a.id = ans.applicant_id
+      WHERE 
+        a.specialization = $1
+      ORDER BY 
+        a.name ASC`,
       [specialization]
     );
     res.json(result.rows);
@@ -644,14 +667,45 @@ app.post("/api/upload/audio", upload.single("audio"), async (req, res) => {
   }
 });
 
-// 1. مسار لعرض صفحة "تم إنهاء الامتحان"
-app.get('/finished', (req, res) => {
-    // افترض أن ملف finished.html موجود في مجلد public
-    res.sendFile(path.join(__dirname, 'public', 'finished.html'));
+app.get("/exams/not-invited", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "exams", "not-invited.html"));
 });
 
-// ... (بقية المسارات)
+// 1. مسار لعرض صفحة "تم إنهاء الامتحان"
+app.get('/exams/finished', (req, res) => {
+    // افترض أن ملف finished.html موجود في مجلد public
+  res.sendFile(path.join(__dirname, "public", "exams", "finished.html"));
+});
 
+// في ملف server.js - إضافة مسار لتحديث حالة الانتهاء
+app.patch("/api/applicant/:id/finish", async (req, res) => {
+    const { id } = req.params; // هو applicantId
+    const { finished } = req.body;
+
+    // تحقق من وجود الـ ID والقيمة الصحيحة
+    if (!id || finished !== true) {
+        return res.status(400).json({ success: false, error: "بيانات الإدخال غير صالحة." });
+    }
+
+    try {
+        const result = await pool.query(
+            "UPDATE applicants SET finished = TRUE WHERE id = $1 AND finished = FALSE RETURNING id",
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            // يحدث هذا إذا لم يتم العثور على المتقدم، أو إذا كانت finished بالفعل TRUE
+            return res.status(404).json({ success: false, error: "المتقدم غير موجود أو تم الانتهاء مسبقاً." });
+        }
+
+        // إرسال رد النجاح
+        res.json({ success: true, message: "تم تسجيل حالة الانتهاء بنجاح." });
+
+    } catch (err) {
+        console.error("PATCH /api/applicant/:id/finish error:", err);
+        res.status(500).json({ success: false, error: "خطأ في قاعدة البيانات أو الخادم." });
+    }
+});
 app.use((req, res, next) => {
     // إرسال كود الحالة 404
     res.status(404);
