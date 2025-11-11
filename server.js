@@ -515,41 +515,41 @@ app.post("/api/questions", async (req, res) => {
 // جلب أسئلة الامتحان
 // جلب أسئلة الامتحان
 app.get("/api/exams/:examId/questions", async (req, res) => {
-  const { examId } = req.params;
-  const { applicant_id } = req.query; 
+ const { examId } = req.params;
+ const { applicant_id } = req.query; 
 
-  if (!applicant_id) {
-    return res.status(400).json({ error: "applicant_id مطلوب لجلب حالة إجابة المتقدم." });
-  }
-  
-  // 🆕 تم التحديث: زيادة عدد المحاولات إلى 4
-  const MAX_RETRIES = 4;
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const result = await pool.query(
-        `SELECT 
-        q.id, q.text, q.type, q.order, s.title AS section_title, s.id AS section_id,
-        a.answer_text, a.audio_url, a.answer_option_id
-        FROM questions q
-        JOIN exam_sections s ON q.section_id = s.id
-        LEFT JOIN answers a ON q.id = a.question_id AND a.applicant_id = $2 AND a.exam_id = $1
-        WHERE s.exam_id=$1
-        ORDER BY s.order, q.order`,
-        [examId, applicant_id]
-      );
-      res.json(result.rows);
-      return; // نجاح، نخرج من الدالة
-    } catch (err) {
-      console.error(`GET /api/exams/:examId/questions error (Attempt ${attempt}):`, err);
-      if (attempt === MAX_RETRIES) {
-        // إذا فشلت جميع المحاولات
-        res.status(500).json({ error: "Database error after multiple retries" });
-        return;
-      }
-      // الانتظار 50ms قبل المحاولة التالية
-      await new Promise(resolve => setTimeout(resolve, 100)); 
-    }
-  }
+ if (!applicant_id) {
+  return res.status(400).json({ error: "applicant_id مطلوب لجلب حالة إجابة المتقدم." });
+ }
+ 
+ // 🆕 تم التحديث: زيادة عدد المحاولات إلى 4
+ const MAX_RETRIES = 4;
+ for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+  try {
+   const result = await pool.query(
+    `SELECT 
+    q.id, q.text, q.type, q.order, s.title AS section_title, s.id AS section_id,
+    a.answer_text, a.audio_url, a.answer_option_id
+    FROM questions q
+    JOIN exam_sections s ON q.section_id = s.id
+    LEFT JOIN answers a ON q.id = a.question_id AND a.applicant_id = $2 AND a.exam_id = $1
+    WHERE s.exam_id=$1
+    ORDER BY s.order, q.order`,
+    [examId, applicant_id]
+   );
+   res.json(result.rows);
+   return; // نجاح، نخرج من الدالة
+  } catch (err) {
+   console.error(`GET /api/exams/:examId/questions error (Attempt ${attempt}):`, err);
+   if (attempt === MAX_RETRIES) {
+    // إذا فشلت جميع المحاولات
+    res.status(500).json({ error: "Database error after multiple retries" });
+    return;
+   }
+   // الانتظار 50ms قبل المحاولة التالية
+   await new Promise(resolve => setTimeout(resolve, 100)); 
+  }
+ }
 });
 // جلب خيارات السؤال
 app.get("/api/questions/options", async (req, res) => {
